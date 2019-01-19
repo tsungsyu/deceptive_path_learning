@@ -487,7 +487,7 @@ def readCommand( argv ):
                     help=default('the ghost agent TYPE in the ghostAgents module to use'),
                     metavar = 'TYPE', default='RandomGhost')
   parser.add_option('-k', '--numghosts', type='int', dest='numGhosts',
-                    help=default('The maximum number of ghosts to use'), default=4)
+                    help=default('The maximum number of ghosts to use'), default=0)
   parser.add_option('-z', '--zoom', type='float', dest='zoom',
                     help=default('Zoom the size of the graphics window'), default=1.0)
   parser.add_option('-f', '--fixRandomSeed', action='store_true', dest='fixRandomSeed',
