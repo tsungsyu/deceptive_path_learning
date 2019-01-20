@@ -50,8 +50,8 @@ def closestFood(pos, food, walls):
 
 def closestDummy(pos, dummy, walls):
   """
-  closestFood -- this is similar to the function that we have
-  worked on in the search project; here its all in one place
+  This is the function to find the closest dummy goal aka Power cap
+  TODO Find close to the real goal
   """
   fringe = [(pos[0], pos[1], 0)]
   expanded = set()
@@ -125,12 +125,12 @@ class DeceptivePlanerExtractor(FeatureExtractor):
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
+
     if len(dummyGoals) > 0:
       dist = closestDummy((next_x, next_y), dummyGoals[0], walls)
-      # make the distance a number less than one otherwise the update
-      # will diverge wildly
       features["min-dummy-goal-dist"] = float(dist) / (walls.width * walls.height)
     else:
+      # reach dummy goal first and get the reward from real goal
       fdist = closestFood((next_x, next_y), food, walls)
       features["food-distance"] =float(fdist) / (walls.width * walls.height)
 
