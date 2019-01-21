@@ -366,6 +366,12 @@ class GameStateData:
     """
     if prevState != None:
       self.food = prevState.food.shallowCopy()
+      self.trueGoal = prevState.trueGoal
+      self.dummyGoals = prevState.dummyGoals
+      self.rmp = prevState.rmp
+      self.ldp = prevState.ldp
+      self.reachedLdp = prevState.reachedLdp
+      self.reachedTrueGoal = prevState.reachedTrueGoal
       self.capsules = prevState.capsules[:]
       self.agentStates = self.copyAgentStates( prevState.agentStates )
       self.layout = prevState.layout
@@ -478,6 +484,14 @@ class GameStateData:
     self.layout = layout
     self.score = 0
     self.scoreChange = 0
+    # TODO customised variable
+    foods = self.food.asList()
+    self.trueGoal = foods[0]
+    self.dummyGoals = [foodie for foodie in foods if foodie is not self.trueGoal]
+    self.rmp = None #TODO calculate rmp
+    self.ldp = self.dummyGoals[0] if len(self.dummyGoals) > 0 else None
+    self.reachedLdp = False
+    self.reachedTrueGoal = False
 
     self.agentStates = []
     numGhosts = 0

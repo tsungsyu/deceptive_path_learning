@@ -48,7 +48,7 @@ def closestFood(pos, food, walls):
   # no food found
   return None
 
-def closestDummy(pos, dummy, walls):
+def distance(pos, dummy, walls):
   """
   This is the function to find the closest dummy goal aka Power cap
   TODO Find close to the real goal
@@ -114,25 +114,23 @@ class SimpleExtractor(FeatureExtractor):
 class DeceptivePlanerExtractor(FeatureExtractor):
   def getFeatures(self, state, action):
     # extract the grid of food and wall locations and get the ghost locations
-    food = state.getFood()
     walls = state.getWalls()
-    dummyGoals = state.getCapsules()
     features = util.Counter()
-
-    features["bias"] = 1.0
 
     # compute the location of pacman after he takes the action
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
 
-    if len(dummyGoals) > 0:
-      dist = closestDummy((next_x, next_y), dummyGoals[0], walls)
-      features["min-dummy-goal-dist"] = float(dist) / (walls.width * walls.height)
+    if not state.reachedLdp():
+      dummyGoals = state.getDummys()
+      dist = distance((next_x, next_y), dummyGoals[0], walls)
+      features["dummy-distance"] = float(dist) / (walls.width * walls.height)
     else:
       # reach dummy goal first and get the reward from real goal
-      fdist = closestFood((next_x, next_y), food, walls)
-      features["food-distance"] =float(fdist) / (walls.width * walls.height)
+      trueGoal = state.getTrueGoal()
+      dist = distance((next_x, next_y), trueGoal, walls)
+      features["goal-distance"] =float(dist) / (walls.width * walls.height)
 
     features.divideAll(10.0)
     return features
