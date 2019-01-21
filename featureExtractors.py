@@ -48,6 +48,29 @@ def closestFood(pos, food, walls):
   # no food found
   return None
 
+def distance(pos, dummy, walls):
+  """
+  This is the function to find the closest dummy goal aka Power cap
+  TODO Find close to the real goal
+  """
+  fringe = [(pos[0], pos[1], 0)]
+  expanded = set()
+  while fringe:
+    pos_x, pos_y, dist = fringe.pop(0)
+    if (pos_x, pos_y) in expanded:
+      continue
+    expanded.add((pos_x, pos_y))
+    # if we find a food at this location then exit
+    if pos_x == dummy[0] and pos_y == dummy[1]:
+      return dist
+    # otherwise spread out from the location to its neighbours
+    nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+    for nbr_x, nbr_y in nbrs:
+      fringe.append((nbr_x, nbr_y, dist+1))
+  # no food found
+  return None
+
+
 class SimpleExtractor(FeatureExtractor):
   """
   Returns simple features for a basic reflex Pacman:
@@ -84,5 +107,30 @@ class SimpleExtractor(FeatureExtractor):
       # make the distance a number less than one otherwise the update
       # will diverge wildly
       features["closest-food"] = float(dist) / (walls.width * walls.height) 
+    features.divideAll(10.0)
+    return features
+
+
+class DeceptivePlanerExtractor(FeatureExtractor):
+  def getFeatures(self, state, action):
+    # extract the grid of food and wall locations and get the ghost locations
+    walls = state.getWalls()
+    features = util.Counter()
+
+    # compute the location of pacman after he takes the action
+    x, y = state.getPacmanPosition()
+    dx, dy = Actions.directionToVector(action)
+    next_x, next_y = int(x + dx), int(y + dy)
+
+    if not state.reachedLdp():
+      dummyGoals = state.getDummys()
+      dist = distance((next_x, next_y), dummyGoals[0], walls)
+      features["dummy-distance"] = float(dist) / (walls.width * walls.height)
+    else:
+      # reach dummy goal first and get the reward from real goal
+      trueGoal = state.getTrueGoal()
+      dist = distance((next_x, next_y), trueGoal, walls)
+      features["goal-distance"] =float(dist) / (walls.width * walls.height)
+
     features.divideAll(10.0)
     return features

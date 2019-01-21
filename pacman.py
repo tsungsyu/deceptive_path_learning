@@ -171,6 +171,21 @@ class GameState:
     """
     return self.data.food
 
+  def getTrueGoal(self):
+    return self.data.trueGoal
+
+  def getDummys(self):
+    return self.data.dummyGoals
+
+  def getLdp(self):
+    return self.data.ldp
+
+  def reachTrueGoal(self):
+    return self.data.reachedTrueGoal
+
+  def reachedLdp(self):
+    return self.data.reachedLdp
+
   def getWalls(self):
     """
     Returns a Grid of boolean wall indicator variables.
@@ -349,9 +364,19 @@ class PacmanRules:
       state.data._foodEaten = position
       # TODO: cache numFood?
       numFood = state.getNumFood()
-      if numFood == 0 and not state.data._lose:
+      if position == state.data.trueGoal:
+        print "reach True Goal"
+        state.data.scoreChange += 500
+        state.data.reachedTrueGoal = True
+        state.data._win = True
+      elif position == state.data.ldp:
+        print "reach LDP"
+        state.data.reachedLdp = True
+
+      elif numFood == 0 and not state.data._lose:
         state.data.scoreChange += 500
         state.data._win = True
+
     # Eat capsule
     if( position in state.getCapsules() ):
       state.data.capsules.remove( position )
