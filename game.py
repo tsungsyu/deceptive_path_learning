@@ -10,6 +10,7 @@ from util import *
 from util import raiseNotDefined
 import time, os
 import traceback
+import math
 
 try:
   import boinc
@@ -488,11 +489,21 @@ class GameStateData:
     foods = self.food.asList()
     self.trueGoal = foods[0]
     self.dummyGoals = [foodie for foodie in foods if foodie is not self.trueGoal]
-    self.rmp = None #TODO calculate rmp
-    self.ldp = self.dummyGoals[0] if len(self.dummyGoals) > 0 else None
+    # calculate rmp
+    rmpDic = calRMP(layout.agentPositions[0][1], self.trueGoal, self.dummyGoals, layout.walls)
+    self.dummyMin = min(rmpDic, key=rmpDic.get)
+    print "-Dummy min-"
+    print self.dummyMin
+    self.rmp = math.floor(rmpDic[self.dummyMin])
+    print "-RMP-"
+    print self.rmp
+    self.ldp = findLdp(self.trueGoal, self.dummyMin,self.rmp,self.layout.walls)
+    print "-LDP-"
+    print self.ldp
+    print "-True goal-"
+    print self.trueGoal
     self.reachedLdp = False
     self.reachedTrueGoal = False
-
     self.agentStates = []
     numGhosts = 0
     for isPacman, pos in layout.agentPositions:
@@ -714,6 +725,66 @@ class Game:
           self._agentCrash(agent.index)
           return
     self.display.finish()
+
+def distance(pos, target, walls):
+  """
+  This is the function to find the closest dummy goal aka Power cap
+  TODO Find close to the real goal
+  """
+  fringe = [(pos[0], pos[1], 0)]
+  expanded = set()
+  while fringe:
+    pos_x, pos_y, dist = fringe.pop(0)
+    if (pos_x, pos_y) in expanded:
+      continue
+    expanded.add((pos_x, pos_y))
+    # if we find a food at this location then exit
+    if pos_x == target[0] and pos_y == target[1]:
+      return dist
+    # otherwise spread out from the location to its neighbours
+    nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+    for nbr_x, nbr_y in nbrs:
+      fringe.append((nbr_x, nbr_y, dist+1))
+  # no food found
+  return None
+
+def calRMP(start,rgoal,dgoals,walls):
+  srdis = distance(start,rgoal,walls)
+  sddist = dict()
+  gddist = dict()
+  rmpDic = dict()
+  for dummy in dgoals:
+    sddist[dummy] = distance(start,dummy,walls)
+    gddist[dummy] = distance(rgoal,dummy,walls)
+    rmpDic[dummy] = (srdis + sddist[dummy] - gddist[dummy])/2
+  return rmpDic
+
+
+def findLdp(realGoal, dummyGoal, rmp, walls):
+  fringe = [(dummyGoal[0], dummyGoal[1], None, None)]
+  expanded = set()
+  back = []
+  while fringe:
+    pos_x, pos_y, pre_x, pre_y = fringe.pop(0)
+    if (pos_x, pos_y) in expanded:
+      continue
+    expanded.add((pos_x, pos_y))
+    # if we find a food at this location then exit
+    if pos_x == realGoal[0] and pos_y == realGoal[1]:
+      while rmp > 0 and back:
+        next_x, next_y, next_pre_x, next_pre_y = back.pop()
+        if pre_x == next_x and pre_y == next_y:
+          pre_x, pre_y = next_pre_x, next_pre_y
+          x, y = next_x, next_y
+          rmp = rmp - 1
+      return (x,y)
+    # otherwise spread out from the location to its neighbours
+    nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+    for nbr_x, nbr_y in nbrs:
+      fringe.append((nbr_x, nbr_y,pos_x,pos_y))
+      back.append((nbr_x, nbr_y,pos_x,pos_y))
+  return None
+
 
 
 

@@ -357,22 +357,23 @@ class PacmanRules:
   def consume( position, state ):
     x,y = position
     # Eat food
-    if state.data.food[x][y]:
+    if position == state.data.ldp:
       state.data.scoreChange += 10
+      state.data.reachedLdp = True
+
+    if state.data.food[x][y]:
+      # state.data.scoreChange += 10
       state.data.food = state.data.food.copy()
       state.data.food[x][y] = False
       state.data._foodEaten = position
+      print state.data.ldp
       # TODO: cache numFood?
       numFood = state.getNumFood()
       if position == state.data.trueGoal:
-        print "reach True Goal"
+        state.data.scoreChange += 50
         state.data.scoreChange += 500
         state.data.reachedTrueGoal = True
         state.data._win = True
-      elif position == state.data.ldp:
-        print "reach LDP"
-        state.data.reachedLdp = True
-
       elif numFood == 0 and not state.data._lose:
         state.data.scoreChange += 500
         state.data._win = True

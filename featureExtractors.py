@@ -124,7 +124,7 @@ class DeceptivePlanerExtractor(FeatureExtractor):
 
     if not state.reachedLdp():
       dummyGoals = state.getDummys()
-      dist = distance((next_x, next_y), dummyGoals[0], walls)
+      dist = distance((next_x, next_y),state.getLdp(), walls)
       features["dummy-distance"] = float(dist) / (walls.width * walls.height)
     else:
       # reach dummy goal first and get the reward from real goal
