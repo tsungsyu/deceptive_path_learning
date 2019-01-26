@@ -111,26 +111,35 @@ class SimpleExtractor(FeatureExtractor):
     return features
 
 
-class DeceptivePlanerExtractor(FeatureExtractor):
+class DeceptivePlannerExtractor(FeatureExtractor):
+  """
+  Returns features for an agent that seeks one of several candidate goals while aiming to hide its intention:
+  - Distance to the last deceptive point (LDP), while it has not been reached
+  - Distance to the intended goal, once the LDP has been reached
+  """
+
   def getFeatures(self, state, action):
-    # extract the grid of food and wall locations and get the ghost locations
+    # Extract the grid of wall locations and initialise the counter of features
     walls = state.getWalls()
     features = util.Counter()
 
-    # compute the location of pacman after he takes the action
+    # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
 
+    # First feature guides the agent to the last deceptive point (LDP)
     if not state.reachedLdp():
-      dummyGoals = state.getDummys()
-      dist = distance((next_x, next_y),state.getLdp(), walls)
-      features["dummy-distance"] = float(dist) / (walls.width * walls.height)
+      dist = distance((next_x, next_y), state.getLdp(), walls)
+      features["LDP-distance"] = float(dist) / (walls.width * walls.height)
+    
+    # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     else:
-      # reach dummy goal first and get the reward from real goal
       trueGoal = state.getTrueGoal()
       dist = distance((next_x, next_y), trueGoal, walls)
-      features["goal-distance"] =float(dist) / (walls.width * walls.height)
+      features["goal-distance"] = float(dist) / (walls.width * walls.height)
 
+    # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
+    
     return features
