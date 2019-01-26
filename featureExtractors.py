@@ -48,26 +48,31 @@ def closestFood(pos, food, walls):
   # no food found
   return None
 
-def distance(pos, dummy, walls):
+def distanceToNearest(pos, targetType, walls):
   """
-  This is the function to find the closest dummy goal aka Power cap
-  TODO Find close to the real goal
+  Returns distance to the nearest item of the specified type (e.g. food, Power Capsule)
   """
+  # Open-list nodes consist of position x,y and distance (initialised at 0)
   fringe = [(pos[0], pos[1], 0)]
+  
+  # Closed list as a set (unordered list of unique elements)
   expanded = set()
+  
   while fringe:
+    # Pop latest node from open list, and add to closed list
     pos_x, pos_y, dist = fringe.pop(0)
     if (pos_x, pos_y) in expanded:
       continue
     expanded.add((pos_x, pos_y))
-    # if we find a food at this location then exit
-    if pos_x == dummy[0] and pos_y == dummy[1]:
+    # Exit if the target item already exists at this location
+    if pos_x == targetType[0] and pos_y == targetType[1]:
       return dist
-    # otherwise spread out from the location to its neighbours
+    # Otherwise, investigate neighbouring nodes and add them to the open list
     nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
     for nbr_x, nbr_y in nbrs:
       fringe.append((nbr_x, nbr_y, dist+1))
-  # no food found
+      
+  # If target item not found
   return None
 
 
@@ -130,13 +135,13 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     # First feature guides the agent to the last deceptive point (LDP)
     if not state.reachedLdp():
-      dist = distance((next_x, next_y), state.getLdp(), walls)
+      dist = distanceToNearest((next_x, next_y), state.getLdp(), walls)
       features["LDP-distance"] = float(dist) / (walls.width * walls.height)
     
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     else:
       trueGoal = state.getTrueGoal()
-      dist = distance((next_x, next_y), trueGoal, walls)
+      dist = distanceToNearest((next_x, next_y), trueGoal, walls)
       features["goal-distance"] = float(dist) / (walls.width * walls.height)
 
     # Divide values in order to prevent unstable divergence
