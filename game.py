@@ -486,11 +486,13 @@ class GameStateData:
     self.score = 0
     self.scoreChange = 0
     # TODO customised variable
-    foods = self.food.asList()
-    self.trueGoal = foods[0]
-    self.dummyGoals = [foodie for foodie in foods if foodie is not self.trueGoal]
-    # calculate rmp
-    rmpDic = calRMP(layout.agentPositions[0][1], self.trueGoal, self.dummyGoals, layout.walls)
+    # First food dot in food list becomes the true goal. Other food dots become dummy goals
+    foodList = self.food.asList()
+    self.trueGoal = foodList[0]
+    self.dummyGoals = [otherFood for otherFood in foodList if otherFood is not self.trueGoal]
+    # Calculate true goal's radius of maximal probability (RMP) for each dummy goal
+    rmpDic = calcRMP(layout.agentPositions[0][1], self.trueGoal, self.dummyGoals, layout.walls)
+    # Dummy goal that gives the true goal the smallest RMP
     self.dummyMin = min(rmpDic, key=rmpDic.get)
     print "-Dummy min-"
     print self.dummyMin
@@ -726,41 +728,54 @@ class Game:
           return
     self.display.finish()
 
-def distance(pos, target, walls):
+def distanceToNearest(pos, targetType, walls):
   """
-  This is the function to find the closest dummy goal aka Power cap
-  TODO Find close to the real goal
+  Returns distance to the nearest item of the specified type (e.g. food, Power Capsule)
   """
+  # Open-list nodes consist of position x,y and distance (initialised at 0)
   fringe = [(pos[0], pos[1], 0)]
+  
+  # Closed list as a set (unordered list of unique elements)
   expanded = set()
+  
   while fringe:
+    # Pop latest node from open list, and add to closed list
     pos_x, pos_y, dist = fringe.pop(0)
     if (pos_x, pos_y) in expanded:
       continue
     expanded.add((pos_x, pos_y))
-    # if we find a food at this location then exit
-    if pos_x == target[0] and pos_y == target[1]:
+    # Exit if the target item already exists at this location
+    if pos_x == targetType[0] and pos_y == targetType[1]:
       return dist
-    # otherwise spread out from the location to its neighbours
+    # Otherwise, investigate neighbouring nodes and add them to the open list
     nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
     for nbr_x, nbr_y in nbrs:
       fringe.append((nbr_x, nbr_y, dist+1))
-  # no food found
+      
+  # If target item not found
   return None
 
-def calRMP(start,rgoal,dgoals,walls):
-  srdis = distance(start,rgoal,walls)
-  sddist = dict()
-  gddist = dict()
+def calcRMP(start, trueGoal, dummyGoals, walls):
+  """
+  Calculates true goal's radius of maximal probability (RMP) relative to each dummy goal independently
+  """
+  # Distance from start to true goal
+  startTrueDist = distanceToNearest(start, trueGoal, walls)
+  # Distances between start and each dummy goal
+  startDummyDists = dict()
+  # Distances between true goal and each dummy goal
+  trueDummyDists = dict()
+  # True goal's RMP relative to each dummy goal independently
   rmpDic = dict()
-  for dummy in dgoals:
-    sddist[dummy] = distance(start,dummy,walls)
-    gddist[dummy] = distance(rgoal,dummy,walls)
-    rmpDic[dummy] = (srdis + sddist[dummy] - gddist[dummy])/2
+  
+  for dummy in dummyGoals:
+    startDummyDists[dummy] = distanceToNearest(start,dummy,walls)
+    trueDummyDists[dummy] = distanceToNearest(trueGoal,dummy,walls)
+    rmpDic[dummy] = (startTrueDist + startDummyDists[dummy] - trueDummyDists[dummy])/2
   return rmpDic
 
 
-def findLdp(realGoal, dummyGoal, rmp, walls):
+def findLdp(trueGoal, dummyGoal, rmp, walls):
   fringe = [(dummyGoal[0], dummyGoal[1], None, None)]
   expanded = set()
   back = []
@@ -770,7 +785,7 @@ def findLdp(realGoal, dummyGoal, rmp, walls):
       continue
     expanded.add((pos_x, pos_y))
     # if we find a food at this location then exit
-    if pos_x == realGoal[0] and pos_y == realGoal[1]:
+    if pos_x == trueGoal[0] and pos_y == realGoal[1]:
       while rmp >= 0 and back:
         next_x, next_y, next_pre_x, next_pre_y = back.pop()
         if pre_x == next_x and pre_y == next_y:
