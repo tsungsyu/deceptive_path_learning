@@ -362,20 +362,19 @@ class PacmanRules:
       state.data.reachedLdp = True
 
     if state.data.food[x][y]:
-      # state.data.scoreChange += 10
+      state.data.scoreChange += 10
       state.data.food = state.data.food.copy()
       state.data.food[x][y] = False
       state.data._foodEaten = position
-      print state.data.ldp
       # TODO: cache numFood?
       numFood = state.getNumFood()
       if position == state.data.trueGoal:
         state.data.scoreChange += 50
-        state.data.scoreChange += 500
+        # state.data.scoreChange += 500
         state.data.reachedTrueGoal = True
         state.data._win = True
       elif numFood == 0 and not state.data._lose:
-        state.data.scoreChange += 500
+        # state.data.scoreChange += 500
         state.data._win = True
 
     # Eat capsule
