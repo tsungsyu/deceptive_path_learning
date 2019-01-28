@@ -167,7 +167,7 @@ class ApproximateQAgent(PacmanQAgent):
   """
   # DeceptivePlanerExtractor
   # IdentityExtractor
-  def __init__(self, extractor='DeceptivePlanerExtractor', **args):
+  def __init__(self, extractor='DeceptivePlannerExtractor', **args):
     self.featExtractor = util.lookup(extractor, globals())()
     PacmanQAgent.__init__(self, **args)
 
