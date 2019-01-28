@@ -488,22 +488,16 @@ class GameStateData:
     # TODO customised variable
     # First food dot in food list becomes the true goal. Other food dots become dummy goals
     foodList = self.food.asList()
-    self.trueGoal = foodList[0]
+    agentStartPos = self.layout.agentPositions[0][1]
+    self.trueGoal = chooseTrueGoal(agentStartPos, foodList)
     self.dummyGoals = [otherFood for otherFood in foodList if otherFood is not self.trueGoal]
     # Calculate true goal's radius of maximal probability (RMP) for each dummy goal
     rmpDic = calcRMP(layout.agentPositions[0][1], self.trueGoal, self.dummyGoals, layout.walls)
     # Dummy goal that gives the true goal the smallest RMP
     self.dummyMin = min(rmpDic, key=rmpDic.get)
-    print "-Dummy min-"
-    print self.dummyMin
     self.rmp = math.floor(rmpDic[self.dummyMin])
-    print "-RMP-"
-    print self.rmp
     self.ldp = findLdp(self.trueGoal, self.dummyMin,self.rmp,self.layout.walls)
-    print "-LDP-"
-    print self.ldp
-    print "-True goal-"
-    print self.trueGoal
+
     self.reachedLdp = False
     self.reachedTrueGoal = False
     self.agentStates = []
@@ -514,6 +508,15 @@ class GameStateData:
         else: numGhosts += 1
       self.agentStates.append( AgentState( Configuration( pos, Directions.STOP), isPacman) )
     self._eaten = [False for a in self.agentStates]
+
+  def getTrueGoal(self):
+    return self.trueGoal
+
+  def getDummyMin(self):
+    return (self.dummyMin,self.rmp)
+
+  def getLDP(self):
+    return self.ldp
 
 class Game:
   """
@@ -771,7 +774,7 @@ def calcRMP(start, trueGoal, dummyGoals, walls):
   for dummy in dummyGoals:
     startDummyDists[dummy] = distanceToNearest(start,dummy,walls)
     trueDummyDists[dummy] = distanceToNearest(trueGoal,dummy,walls)
-    rmpDic[dummy] = (startTrueDist + startDummyDists[dummy] - trueDummyDists[dummy])/2
+    rmpDic[dummy] = (startTrueDist + trueDummyDists[dummy] - startDummyDists[dummy])/2
   return rmpDic
 
 
@@ -800,6 +803,12 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
       back.append((nbr_x, nbr_y,pos_x,pos_y))
   return None
 
+def chooseTrueGoal(start, goals):
+  disFromStart = dict()
+  for goal in goals:
+    dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
+    disFromStart[goal] = dist
+  return max(disFromStart, key=disFromStart.get)
 
 
 
