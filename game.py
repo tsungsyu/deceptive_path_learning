@@ -785,7 +785,7 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
       continue
     expanded.add((pos_x, pos_y))
     # if we find a food at this location then exit
-    if pos_x == trueGoal[0] and pos_y == realGoal[1]:
+    if pos_x == trueGoal[0] and pos_y == trueGoal[1]:
       while rmp >= 0 and back:
         next_x, next_y, next_pre_x, next_pre_y = back.pop()
         if pre_x == next_x and pre_y == next_y:
