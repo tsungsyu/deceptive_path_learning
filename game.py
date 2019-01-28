@@ -378,6 +378,7 @@ class GameStateData:
       self.layout = prevState.layout
       self._eaten = prevState._eaten
       self.score = prevState.score
+      self.agentStartPos = prevState.agentStartPos
     self._foodEaten = None
     self._capsuleEaten = None
     self._agentMoved = None
@@ -487,10 +488,10 @@ class GameStateData:
     self.scoreChange = 0
     # TODO customised variable
     # First food dot in food list becomes the true goal. Other food dots become dummy goals
-    self.foodList = self.food.asList()
+    foodList = self.food.asList()
     self.agentStartPos = self.layout.agentPositions[0][1]
-    self.trueGoal = chooseTrueGoal(self.agentStartPos, self.foodList)
-    self.dummyGoals = [otherFood for otherFood in self.foodList if otherFood is not self.trueGoal]
+    self.trueGoal = chooseTrueGoal(self.agentStartPos, foodList)
+    self.dummyGoals = [otherFood for otherFood in foodList if otherFood is not self.trueGoal]
     # Calculate true goal's radius of maximal probability (RMP) for each dummy goal
     rmpDic = calcRMP(layout.agentPositions[0][1], self.trueGoal, self.dummyGoals, layout.walls)
     # Dummy goal that gives the true goal the smallest RMP

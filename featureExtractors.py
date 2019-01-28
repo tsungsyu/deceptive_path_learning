@@ -161,9 +161,11 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     foodList = state.data.food.asList()
     for food in foodList:
-      print 'goal:', food
-      dist = distanceToNearest((next_x, next_y), food, walls)
-      observerFeatures[food] = 1.0
+      distFromCurrentPos = distanceToNearest((next_x, next_y), food, walls)
+      distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
+      pcomp = distFromStartPos - distFromCurrentPos
+      observerFeatures[food] = float(pcomp) / (walls.width * walls.height)
+      # print 'goal:%s, pcomp: %d'% (food, pcomp)
 
     # Divide values in order to prevent unstable divergence
     observerFeatures.divideAll(10.0)

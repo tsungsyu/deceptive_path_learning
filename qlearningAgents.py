@@ -64,7 +64,7 @@ class QLearningAgent(ReinforcementAgent):
     possibleStateQValues = util.Counter()
     for action in self.getLegalActions(state):
     	possibleStateQValues[action] = self.getQValue(state, action)
-    
+
     return possibleStateQValues[possibleStateQValues.argMax()]
 
   def getPolicy(self, state):
@@ -78,10 +78,10 @@ class QLearningAgent(ReinforcementAgent):
     possibleActions = self.getLegalActions(state)
     if len(possibleActions) == 0:
     	return None
-    
+
     for action in possibleActions:
     	possibleStateQValues[action] = self.getQValue(state, action)
-    
+
     if possibleStateQValues.totalCount() == 0:
     	return random.choice(possibleActions)
     else:
@@ -174,7 +174,7 @@ class ApproximateQAgent(PacmanQAgent):
     # You might want to initialize weights here.
     "*** YOUR CODE HERE ***"
     self.weights = util.Counter()
-    self.observerWeight = util.Counter
+    self.observerWeight = util.Counter()
 
   def getQValue(self, state, action):
     """
@@ -188,6 +188,12 @@ class ApproximateQAgent(PacmanQAgent):
     	qValue += (self.weights[key] * features[key])
     return qValue
 
+  def getObserverQValue(self, state, action):
+    qValue = 0.0
+    observersFeatures = self.featExtractor.getObserverFeatures(state, action)
+    for key in observersFeatures.keys():
+      qValue += (self.observerWeight[key] * observersFeatures[key])
+    return qValue
 
   def update(self, state, action, nextState, reward):
     """
@@ -196,10 +202,20 @@ class ApproximateQAgent(PacmanQAgent):
     "*** YOUR CODE HERE ***"
     features = self.featExtractor.getFeatures(state, action)
     for key in features.keys():
-    	self.weights[key] += self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
+      self.weights[key] += self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
 
     # Todo: calculate observerFeatures
-    observerFeatures = self.featExtractor.getObserverFeatures(state, action)
+    # observerFeatures = self.featExtractor.getObserverFeatures(state, action)
+    # observerReward = self.getObserverReward(state)
+    # for key in observerFeatures.keys():
+    #   self.observerWeight[key] += self.alpha * (observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, action)) * observerFeatures[key]
+
+  def getObserverValue(self, state):
+    possibleStateQValues = util.Counter()
+    for action in self.getLegalActions(state):
+      possibleStateQValues[action] = self.getObserverQValue(state, action)
+
+    return possibleStateQValues[possibleStateQValues.argMax()]
 
   def final(self, state):
     "Called at the end of each game."
