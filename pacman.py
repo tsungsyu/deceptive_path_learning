@@ -37,6 +37,7 @@ from game import GameStateData
 from game import Game
 from game import Directions
 from game import Actions
+from game import calcCostDifference
 from util import nearestPoint
 from util import manhattanDistance
 import util, layout
@@ -356,13 +357,32 @@ class PacmanRules:
 
   def consume( position, state ):
     x,y = position
-    # Eat food
+    start = state.data.agentStartPos
+    # Reward agent for reaching last deceptive point
     if position == state.data.ldp:
-      state.data.scoreChange += 10
+      # state.data.scoreChange += 10
       state.data.reachedLdp = True
 
+    # Penalise agent for taking movements before LDP that make its true goal look likeliest
+    if not state.data.reachedLdp:
+      # 1. Get the cost difference with respect to the true goal
+      trueGoal = state.getTrueGoal()
+      trueGoalCostDiff = calcCostDifference(position, start, trueGoal, state.getWalls())
+
+      # 2. Initialise the reward at -1
+      deceptionReward = -1
+
+      # 3. Increment the reward for every dummy goal that for which
+      # the cost difference (i.e. deviation from the optimal path to that goal) is not greater than that of the true goal
+      for dummyGoal in state.getDummys():
+        dummyGoalCostDiff = calcCostDifference(position, start, dummyGoal, state.getWalls())
+        if dummyGoalCostDiff <= trueGoalCostDiff:
+          deceptionReward +=1
+
+      state.data.scoreChange += deceptionReward
+    # Reward agent for reaching the true goal
     if state.data.food[x][y]:
-      state.data.scoreChange += 10
+      # state.data.scoreChange += 10
       state.data.food = state.data.food.copy()
       state.data.food[x][y] = False
       state.data._foodEaten = position
