@@ -205,17 +205,53 @@ class ApproximateQAgent(PacmanQAgent):
       self.weights[key] += self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
 
     # Todo: calculate observerFeatures
-    # observerFeatures = self.featExtractor.getObserverFeatures(state, action)
-    # observerReward = self.getObserverReward(state)
-    # for key in observerFeatures.keys():
-    #   self.observerWeight[key] += self.alpha * (observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, action)) * observerFeatures[key]
+    observerFeatures = self.featExtractor.getObserverFeatures(state, action)
+    observerReward = self.getObserverReward(state, action)
+    for key in observerFeatures.keys():
+      self.observerWeight[key] += self.alpha * (observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, action)) * observerFeatures[key]
 
   def getObserverValue(self, state):
     possibleStateQValues = util.Counter()
     for action in self.getLegalActions(state):
       possibleStateQValues[action] = self.getObserverQValue(state, action)
-
     return possibleStateQValues[possibleStateQValues.argMax()]
+
+  def observerPredictGoalByPComp(self, state, action):
+    '''
+    obserserver predict goal based on the path completion of each potential goal
+    choose the one owing max path completion
+    '''
+    possiblePathComp = util.Counter()
+    walls = state.getWalls()
+
+    # Compute the location of pacman after he takes the next action
+    x, y = state.getPacmanPosition()
+    dx, dy = Actions.directionToVector(action)
+    next_x, next_y = int(x + dx), int(y + dy)
+
+    foodList = state.data.food.asList()
+    for food in foodList:
+      distFromCurrentPos = distanceToNearest((next_x, next_y), food, walls)
+      distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
+      possiblePathComp[food] = distFromStartPos - distFromCurrentPos
+
+    return possiblePathComp.argMax()
+
+  def getObserverReward(self, state, action):
+    '''
+    if observer predict correctly, get positive reward,
+    else get negative reward
+    '''
+    # self.state.data.predictCount = self.state.data.predictCount + 1
+    if self.observerPredictGoalByPComp(state, action) == state.data.trueGoal:
+      reward = 10.0
+      # state.data.correctlyPredict = state.data.correctlyPredict + 1
+      print 'observer predict correctly!'
+    else:
+      reward = 0.0
+      print 'observer predict wrongly!'
+
+    return reward
 
   def final(self, state):
     "Called at the end of each game."

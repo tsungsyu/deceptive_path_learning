@@ -379,6 +379,9 @@ class GameStateData:
       self._eaten = prevState._eaten
       self.score = prevState.score
       self.agentStartPos = prevState.agentStartPos
+      self.predictCount = prevState.predictCount
+      self.correctlyPredict = prevState.correctlyPredict
+
     self._foodEaten = None
     self._capsuleEaten = None
     self._agentMoved = None
@@ -486,6 +489,8 @@ class GameStateData:
     self.layout = layout
     self.score = 0
     self.scoreChange = 0
+    self.predictCount = 0
+    self.correctlyPredict = 0
     # TODO customised variable
     # First food dot in food list becomes the true goal. Other food dots become dummy goals
     foodList = self.food.asList()
@@ -810,6 +815,8 @@ def chooseTrueGoal(start, goals):
     dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
     disFromStart[goal] = dist
   return max(disFromStart, key=disFromStart.get)
+
+
 
 
 
