@@ -776,6 +776,7 @@ def calcRMP(start, trueGoal, dummyGoals, walls):
     startDummyDists[dummy] = distanceToNearest(start,dummy,walls)
     trueDummyDists[dummy] = distanceToNearest(trueGoal,dummy,walls)
     rmpDic[dummy] = (startTrueDist + trueDummyDists[dummy] - startDummyDists[dummy])/2
+  
   return rmpDic
 
 
@@ -802,15 +803,34 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
     for nbr_x, nbr_y in nbrs:
       fringe.append((nbr_x, nbr_y,pos_x,pos_y))
       back.append((nbr_x, nbr_y,pos_x,pos_y))
+      
   return None
+
 
 def chooseTrueGoal(start, goals):
   disFromStart = dict()
   for goal in goals:
     dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
     disFromStart[goal] = dist
+    
   return max(disFromStart, key=disFromStart.get)
 
 
+def calcCostDifference(pos, start, goal, walls):
+  """
+  Calculates a node's cost difference with respect to a goal.
+  Cost difference = (Cost of the optimal path that includes that node)
+                      - (Cost of the optimal path that doesn't necessarily include that node)
+  """
+  # Optimal cost of path that includes the current node
+  startToPos = distanceToNearest(pos, start, walls)
+  posToGoal = distanceToNearest(pos, goal, walls)
+
+  # Optimal cost of path that doesn't necessarily include the current node
+  optToGoal = distanceToNearest(start, goal, walls)
+
+  costDifference = startToPos + posToGoal - optToGoal
+
+  return costDifference
 
 
