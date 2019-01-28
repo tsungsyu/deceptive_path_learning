@@ -174,6 +174,7 @@ class ApproximateQAgent(PacmanQAgent):
     # You might want to initialize weights here.
     "*** YOUR CODE HERE ***"
     self.weights = util.Counter()
+    self.observerWeight = util.Counter
 
   def getQValue(self, state, action):
     """
@@ -196,6 +197,9 @@ class ApproximateQAgent(PacmanQAgent):
     features = self.featExtractor.getFeatures(state, action)
     for key in features.keys():
     	self.weights[key] += self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
+
+    # Todo: calculate observerFeatures
+    observerFeatures = self.featExtractor.getObserverFeatures(state, action)
 
   def final(self, state):
     "Called at the end of each game."

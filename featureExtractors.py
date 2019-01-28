@@ -11,8 +11,8 @@
 from game import Directions, Actions
 import util
 
-class FeatureExtractor:  
-  def getFeatures(self, state, action):    
+class FeatureExtractor:
+  def getFeatures(self, state, action):
     """
       Returns a dict from features to counts
       Usually, the count will just be 1.0 for
@@ -54,10 +54,10 @@ def distanceToNearest(pos, targetType, walls):
   """
   # Open-list nodes consist of position x,y and distance (initialised at 0)
   fringe = [(pos[0], pos[1], 0)]
-  
+
   # Closed list as a set (unordered list of unique elements)
   expanded = set()
-  
+
   while fringe:
     # Pop latest node from open list, and add to closed list
     pos_x, pos_y, dist = fringe.pop(0)
@@ -71,7 +71,7 @@ def distanceToNearest(pos, targetType, walls):
     nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
     for nbr_x, nbr_y in nbrs:
       fringe.append((nbr_x, nbr_y, dist+1))
-      
+
   # If target item not found
   return None
 
@@ -84,7 +84,7 @@ class SimpleExtractor(FeatureExtractor):
   - whether a ghost collision is imminent
   - whether a ghost is one step away
   """
-  
+
   def getFeatures(self, state, action):
     # extract the grid of food and wall locations and get the ghost locations
     food = state.getFood()
@@ -92,26 +92,26 @@ class SimpleExtractor(FeatureExtractor):
     ghosts = state.getGhostPositions()
 
     features = util.Counter()
-    
+
     features["bias"] = 1.0
-    
+
     # compute the location of pacman after he takes the action
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
-    
+
     # count the number of ghosts 1-step away
     features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
 
     # if there is no danger of ghosts then add the food feature
     if not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
       features["eats-food"] = 1.0
-    
+
     dist = closestFood((next_x, next_y), food, walls)
     if dist is not None:
       # make the distance a number less than one otherwise the update
       # will diverge wildly
-      features["closest-food"] = float(dist) / (walls.width * walls.height) 
+      features["closest-food"] = float(dist) / (walls.width * walls.height)
     features.divideAll(10.0)
     return features
 
@@ -137,7 +137,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     if not state.reachedLdp():
       dist = distanceToNearest((next_x, next_y), state.getLdp(), walls)
       features["LDP-distance"] = float(dist) / (walls.width * walls.height)
-    
+
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     else:
       trueGoal = state.getTrueGoal()
@@ -146,5 +146,26 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
-    
+
     return features
+
+  def getObserverFeatures(self, state, action):
+    # Extract the grid of wall locations and initialise the counter of features
+    walls = state.getWalls()
+    observerFeatures = util.Counter()
+
+    # Compute the location of pacman after he takes the next action
+    x, y = state.getPacmanPosition()
+    dx, dy = Actions.directionToVector(action)
+    next_x, next_y = int(x + dx), int(y + dy)
+
+    foodList = state.data.food.asList()
+    for food in foodList:
+      print 'goal:', food
+      dist = distanceToNearest((next_x, next_y), food, walls)
+      observerFeatures[food] = 1.0
+
+    # Divide values in order to prevent unstable divergence
+    observerFeatures.divideAll(10.0)
+
+    return observerFeatures
