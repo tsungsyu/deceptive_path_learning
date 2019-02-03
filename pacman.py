@@ -355,24 +355,32 @@ class PacmanRules:
   applyAction = staticmethod( applyAction )
 
   def consume( position, state ):
+    """
+    rewards gained from the interaction with the environment through this function
+    :param position:
+    :param state:
+    :return:
+    """
     x,y = position
-    # Eat food
+    # LDP Deprecated
     if position == state.data.ldp:
-      state.data.scoreChange += 10
+      state.data.scoreChange += 0
       state.data.reachedLdp = True
-
+    # dummy goals
     if state.data.food[x][y]:
-      state.data.scoreChange += 10
+      state.data.scoreChange += -1
       state.data.food = state.data.food.copy()
       state.data.food[x][y] = False
       state.data._foodEaten = position
       # TODO: cache numFood?
       numFood = state.getNumFood()
       if position == state.data.trueGoal:
+        # True goal is reached
         state.data.scoreChange += 50
         # state.data.scoreChange += 500
         state.data.reachedTrueGoal = True
         state.data._win = True
+        # Deprecated all of the foods are eaten
       elif numFood == 0 and not state.data._lose:
         # state.data.scoreChange += 500
         state.data._win = True

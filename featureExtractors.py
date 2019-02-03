@@ -112,7 +112,7 @@ class SimpleExtractor(FeatureExtractor):
       # make the distance a number less than one otherwise the update
       # will diverge wildly
       features["closest-food"] = float(dist) / (walls.width * walls.height)
-    features.divideAll(10.0)
+    # features.divideAll(10.0)
     return features
 
 
@@ -128,40 +128,42 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     walls = state.getWalls()
     features = util.Counter()
 
+    features["bias"] = 1.0
+
     # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
 
     # First feature guides the agent to the last deceptive point (LDP)
-    if not state.reachedLdp():
-      dist = distanceToNearest((next_x, next_y), state.getLdp(), walls)
-      features["LDP-distance"] = float(dist) / (walls.width * walls.height)
+    # if not state.reachedLdp():
+    #   dist = distanceToNearest((next_x, next_y), state.getLdp(), walls)
+    #   features["LDP-distance"] = float(dist) / (walls.width * walls.height)
 
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
-    else:
-      trueGoal = state.getTrueGoal()
-      dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-      features["goal-distance"] = float(dist) / (walls.width * walls.height)
+    # else:
+    trueGoal = state.getTrueGoal()
+    # food = state.getFood()
+    # dist = closestFood((next_x, next_y), food, walls)
+    dist = distanceToNearest((next_x, next_y), trueGoal, walls)
+    features["goal-distance"] = float(dist) / (walls.width * walls.height)
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
 
     return features
 
-  def getObserverFeatures(self, state, action):
+  def getObserverFeatures(self, state, agentAction):
     # Extract the grid of wall locations and initialise the counter of features
     walls = state.getWalls()
     observerFeatures = util.Counter()
 
     # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
-    dx, dy = Actions.directionToVector(action)
-    next_x, next_y = int(x + dx), int(y + dy)
 
     foodList = state.data.food.asList()
     for food in foodList:
-      distFromCurrentPos = distanceToNearest((next_x, next_y), food, walls)
+      distFromCurrentPos = distanceToNearest((x, y), food, walls)
       distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
       pcomp = distFromStartPos - distFromCurrentPos
       observerFeatures[food] = float(pcomp) / (walls.width * walls.height)
