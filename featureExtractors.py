@@ -167,7 +167,8 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     x, y = state.getPacmanPosition()
     foodList = state.data.food.asList()
     for food in foodList:
-      if food == agentAction:
+      # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
+      if food != agentAction:
         distFromCurrentPos = distanceToNearest((x, y), food, walls)
         distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
         pcomp = distFromStartPos - distFromCurrentPos

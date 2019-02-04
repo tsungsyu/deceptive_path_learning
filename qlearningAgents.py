@@ -260,8 +260,11 @@ class ApproximateQAgent(PacmanQAgent):
 
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
-    scaleCons = -0.1
+    scaleCons = -1
+    # print observerReward
+    # print reward
     reward += (scaleCons * observerReward)
+    # print reward
     for key in features.keys():
       self.weights[key] += self.alpha * (
                 reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
@@ -271,6 +274,7 @@ class ApproximateQAgent(PacmanQAgent):
     if observer predict correctly, get positive reward,
     else get negative reward
     '''
+    print "ob (%s,%s) ? (%s, %s)" % (observerAction[0], observerAction[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
     if observerAction == state.getTrueGoal():
       reward = 10.0
     else:
