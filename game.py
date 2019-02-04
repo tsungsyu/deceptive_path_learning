@@ -381,7 +381,9 @@ class GameStateData:
       self.agentStartPos = prevState.agentStartPos
       self.predictCount = prevState.predictCount
       self.correctlyPredict = prevState.correctlyPredict
+      self.stepsSoFar = prevState.stepsSoFar + 1
 
+    self.statePossibility = None
     self._foodEaten = None
     self._capsuleEaten = None
     self._agentMoved = None
@@ -491,7 +493,10 @@ class GameStateData:
     self.scoreChange = 0
     self.predictCount = 0
     self.correctlyPredict = 0
-    # TODO customised variable
+
+    # customised variable
+    self.stepsSoFar = 0
+    self.statePossibility = dict()
     # First food dot in food list becomes the true goal. Other food dots become dummy goals
     foodList = self.food.asList()
     self.agentStartPos = self.layout.agentPositions[0][1]
@@ -515,14 +520,6 @@ class GameStateData:
       self.agentStates.append( AgentState( Configuration( pos, Directions.STOP), isPacman) )
     self._eaten = [False for a in self.agentStates]
 
-  def getTrueGoal(self):
-    return self.trueGoal
-
-  def getDummyMin(self):
-    return (self.dummyMin,self.rmp)
-
-  def getLDP(self):
-    return self.ldp
 
 class Game:
   """

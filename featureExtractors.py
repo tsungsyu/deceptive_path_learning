@@ -10,7 +10,7 @@
 
 from game import Directions, Actions
 import util
-
+import math
 class FeatureExtractor:
   def getFeatures(self, state, action):
     """
@@ -162,18 +162,41 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     :return:
     """
     # Extract the grid of wall locations and initialise the counter of features
+    stepsSoFar = state.getStepsSoFar()
     walls = state.getWalls()
     observerFeatures = util.Counter()
     x, y = state.getPacmanPosition()
     foodList = state.data.food.asList()
     for food in foodList:
       # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
-      if food != agentAction:
-        distFromCurrentPos = distanceToNearest((x, y), food, walls)
-        distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
-        pcomp = distFromStartPos - distFromCurrentPos
-        observerFeatures[food] = float(pcomp) / (walls.width * walls.height)
+      # if food == agentAction:
+      distFromCurrentPos = distanceToNearest((x, y), food, walls)
+      distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
+      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
+
+      observerFeatures[food] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
     # Divide values in order to prevent unstable divergence
     observerFeatures.divideAll(10.0)
 
     return observerFeatures
+
+  def calculateHeatMap(self, state):
+
+    pos = state.getPacmanPosition()
+    stepsSoFar = state.getStepsSoFar()
+    walls = state.getWalls()
+
+    probability4Goals = dict()
+    goals = state.data.food.asList()
+
+    for goal in goals:
+      distFromCurrentPos = distanceToNearest(pos, goal, walls)
+      distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
+      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
+      print "costPos(%s,%s)" % (goal[0], goal[1])
+      print "costDiff:", costDiff
+
+      probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+      print "posibility", probability4Goals[goal]
+
+      state.data.statePossibility = probability4Goals

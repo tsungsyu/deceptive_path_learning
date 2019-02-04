@@ -40,7 +40,7 @@ from game import Actions
 from util import nearestPoint
 from util import manhattanDistance
 import util, layout
-import sys, types, time, random, os
+import sys, types, time, random, os, math
 
 ###################################################
 # YOUR INTERFACE TO THE PACMAN WORLD: A GameState #
@@ -185,6 +185,13 @@ class GameState:
 
   def reachedLdp(self):
     return self.data.reachedLdp
+
+  def getStepsSoFar(self):
+    return self.data.stepsSoFar
+
+  def getObserverReward(self):
+    prob = 1 if 1 - self.data.statePossibility[self.data.trueGoal] == 0 else 1 - self.data.statePossibility[self.data.trueGoal]
+    return math.log(prob)
 
   def getWalls(self):
     """
@@ -368,7 +375,6 @@ class PacmanRules:
       state.data.reachedLdp = True
     # dummy goals
     if state.data.food[x][y]:
-      state.data.scoreChange += -1
       state.data.food = state.data.food.copy()
       state.data.food[x][y] = False
       state.data._foodEaten = position
@@ -376,7 +382,7 @@ class PacmanRules:
       numFood = state.getNumFood()
       if position == state.data.trueGoal:
         # True goal is reached
-        state.data.scoreChange += 50
+        state.data.scoreChange += 10
         # state.data.scoreChange += 500
         state.data.reachedTrueGoal = True
         state.data._win = True
@@ -384,6 +390,8 @@ class PacmanRules:
       elif numFood == 0 and not state.data._lose:
         # state.data.scoreChange += 500
         state.data._win = True
+      else:
+        state.data.scoreChange += -10
 
     # Eat capsule
     if( position in state.getCapsules() ):

@@ -104,8 +104,8 @@ class QLearningAgent(ReinforcementAgent):
 
     for (x, y) in possibleActions:
       possibleStateQValues[(x, y)] = self.getObserverQValue(state, (x, y))
-    print "(%s,%s) Q values:" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-    print possibleStateQValues
+    # print "(%s,%s) Q values:" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+    # print possibleStateQValues
     if possibleStateQValues.totalCount() == 0:
       return random.choice(possibleActions)
     else:
@@ -247,20 +247,28 @@ class ApproximateQAgent(PacmanQAgent):
        the reward is passed in by interacting with the environment: learingAgents.py line 200
     """
     # update observer's weight
+
     observerAction = self.getObserverAction(state)
     # observer takes action and rewarded
-    observerReward = self.observerDoAction(state, observerAction)
+    # observerReward = self.observerDoAction(state, observerAction)
     # observer gets features
-    observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
+    # observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
+    self.featExtractor.calculateHeatMap(state)
+
+    observerReward = state.getObserverReward()
+    if observerReward != 0:
+      print "current pos (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      print "observer reward:"
+      print observerReward
     # observer update weights
-    for key in observerFeatures.keys():
+    # for key in observerFeatures.keys():
       # print "feature[%s], reward: %f, V(s',a'): %f, Q(s,a): %f, f(s,a): %f" % (key, observerReward,self.getObserverValue(nextState),self.getObserverQValue(state, observerAction),observerFeatures[key])
-      self.observerWeight[key] += self.alpha * (
-              observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, observerAction)) * observerFeatures[key]
+      # self.observerWeight[key] += self.alpha * (
+      #         observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, observerAction)) * observerFeatures[key]
 
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
-    scaleCons = -1
+    scaleCons = 1
     # print observerReward
     # print reward
     reward += (scaleCons * observerReward)
