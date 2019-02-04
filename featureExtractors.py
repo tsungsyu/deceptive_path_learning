@@ -154,21 +154,24 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     return features
 
   def getObserverFeatures(self, state, agentAction):
+    """
+    extract features of observer
+    mainly calculate the path completion from current node
+    :param state:
+    :param agentAction:
+    :return:
+    """
     # Extract the grid of wall locations and initialise the counter of features
     walls = state.getWalls()
     observerFeatures = util.Counter()
-
-    # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
-
     foodList = state.data.food.asList()
     for food in foodList:
-      distFromCurrentPos = distanceToNearest((x, y), food, walls)
-      distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
-      pcomp = distFromStartPos - distFromCurrentPos
-      observerFeatures[food] = float(pcomp) / (walls.width * walls.height)
-      # print 'goal:%s, pcomp: %d'% (food, pcomp)
-
+      if food == agentAction:
+        distFromCurrentPos = distanceToNearest((x, y), food, walls)
+        distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
+        pcomp = distFromStartPos - distFromCurrentPos
+        observerFeatures[food] = float(pcomp) / (walls.width * walls.height)
     # Divide values in order to prevent unstable divergence
     observerFeatures.divideAll(10.0)
 
