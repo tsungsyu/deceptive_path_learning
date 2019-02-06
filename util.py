@@ -169,8 +169,16 @@ class Counter(dict):
     if len(self.keys()) == 0: return None
     all = self.items()
     values = [x[1] for x in all]
-    maxIndex = values.index(max(values))
-    return all[maxIndex][0]
+    maxValue = max(values)
+    highestValueKeys = []
+    for key, value in all:
+      if value >= maxValue:
+        highestValueKeys.append(key)
+
+    if len(highestValueKeys) > 1:
+      return random.choice(highestValueKeys)
+    else:
+      return highestValueKeys[0]
   
   def sortedKeys(self):
     """

@@ -147,6 +147,8 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     # dist = closestFood((next_x, next_y), food, walls)
     dist = distanceToNearest((next_x, next_y), trueGoal, walls)
     features["goal-distance"] = float(dist) / (walls.width * walls.height)
+    # features["pos-x"] = next_x/walls.width
+    # features["pos-y"] = next_y/walls.height
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
@@ -165,16 +167,18 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     stepsSoFar = state.getStepsSoFar()
     walls = state.getWalls()
     observerFeatures = util.Counter()
-    x, y = state.getPacmanPosition()
-    foodList = state.data.food.asList()
-    for food in foodList:
-      # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
-      # if food == agentAction:
-      distFromCurrentPos = distanceToNearest((x, y), food, walls)
-      distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
-      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
+    pos = state.getPacmanPosition()
+    # foodList = state.data.food.asList()
+    # for food in foodList:
+    # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
+    # if food == agentAction:
+    distFromCurrentPos = distanceToNearest(pos, agentAction, walls)
 
-      observerFeatures[food] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+    # TODO to use probabilty as feature
+    distFromStartPos = distanceToNearest(state.data.agentStartPos, agentAction, walls)
+    costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
+
+    observerFeatures[agentAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
     # Divide values in order to prevent unstable divergence
     observerFeatures.divideAll(10.0)
 
@@ -193,10 +197,5 @@ class DeceptivePlannerExtractor(FeatureExtractor):
       distFromCurrentPos = distanceToNearest(pos, goal, walls)
       distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
       costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
-      print "costPos(%s,%s)" % (goal[0], goal[1])
-      print "costDiff:", costDiff
-
       probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-      print "posibility", probability4Goals[goal]
-
       state.data.statePossibility = probability4Goals
