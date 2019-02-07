@@ -304,11 +304,8 @@ class ApproximateQAgent(PacmanQAgent):
       # you might want to print your weights here for debugging
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
+      for state in self.stateStack:
+        print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+        for action in self.getLegalActions(state):
+          print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))
       pass
-    # for x in range(1,state.getWalls().width):
-    #   for y in range(1, state.getWalls().height):
-    #     print
-    for state in self.stateStack:
-      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      for action in self.getLegalActions(state):
-        print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))
