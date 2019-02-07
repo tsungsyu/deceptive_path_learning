@@ -37,7 +37,7 @@ class QLearningAgent(ReinforcementAgent):
     "You can initialize Q-values here..."
     ReinforcementAgent.__init__(self, **args)
 
-    "*** YOUR CODE HERE ***"
+    # Q table
     self.qValues = util.Counter()
     print "ALPHA", self.alpha
     print "DISCOUNT", self.discount
@@ -63,16 +63,12 @@ class QLearningAgent(ReinforcementAgent):
     possibleStateQValues = util.Counter()
     for action in self.getLegalActions(state):
     	possibleStateQValues[action] = self.getQValue(state, action)
-    print "Agent Q value:"
-    print possibleStateQValues
     return possibleStateQValues[possibleStateQValues.argMax()]
 
   def getObserverValue(self, state):
     possibleStateQValues = util.Counter()
     for action in state.getFood().asList():
       possibleStateQValues[action] = self.getObserverQValue(state, action)
-    print "Observer Q value:"
-    print possibleStateQValues
     return possibleStateQValues[possibleStateQValues.argMax()]
 
   def getPolicy(self, state):
@@ -83,16 +79,18 @@ class QLearningAgent(ReinforcementAgent):
     """
     possibleStateQValues = util.Counter()
     possibleActions = self.getLegalActions(state)
+    choosedAction = None
     if len(possibleActions) == 0:
-    	return None
+    	return choosedAction
 
     for action in possibleActions:
       possibleStateQValues[action] = self.getQValue(state, action)
 
     if possibleStateQValues.totalCount() == 0:
-    	return random.choice(possibleActions)
+      choosedAction = random.choice(possibleActions)
     else:
-    	return possibleStateQValues.argMax()
+      choosedAction = possibleStateQValues.argMax()
+    return choosedAction
 
   def getObserverPolicy(self, state):
     """
@@ -162,8 +160,7 @@ class QLearningAgent(ReinforcementAgent):
       NOTE: You should never call this function,
       it will be called on your behalf
     """
-    "*** YOUR CODE HERE ***"
-    print "State: ", state, " , Action: ", action, " , NextState: ", nextState, " , Reward: ", reward
+    # print "State: ", state, " , Action: ", action, " , NextState: ", nextState, " , Reward: ", reward
     print "QVALUE", self.getQValue(state, action)
     print "VALUE", self.getValue(nextState)
     self.qValues[(state, action)] = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
@@ -217,6 +214,7 @@ class ApproximateQAgent(PacmanQAgent):
     self.weights = util.Counter()
     # weight of observer
     self.observerWeight = util.Counter()
+    self.stateStack = []
 
   def getQValue(self, state, action):
     """
@@ -251,6 +249,8 @@ class ApproximateQAgent(PacmanQAgent):
     """
     # update observer's weight
     print "===============start================="
+    if state not in self.stateStack:
+      self.stateStack.append(state)
     observerAction = self.getObserverAction(state)
     # observer takes action and rewarded
     observerReward = self.observerDoAction(state, observerAction)
@@ -258,7 +258,8 @@ class ApproximateQAgent(PacmanQAgent):
     observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
     self.featExtractor.calculateHeatMap(state)
 
-    print "nextState(%s,%s) == TrueGoal(%s,%s)" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
+    # print "nextState(%s,%s) == TrueGoal(%s,%s)" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
+    # print observerFeatures
     if not nextState.getPacmanPosition() == state.getTrueGoal():
       # observerReward = state.getObserverReward()
       if observerReward != 0:
@@ -300,9 +301,14 @@ class ApproximateQAgent(PacmanQAgent):
     PacmanQAgent.final(self, state)
     # did we finish training?
     if self.episodesSoFar == self.numTraining:
-
       # you might want to print your weights here for debugging
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
       pass
-    print self.weights
+    # for x in range(1,state.getWalls().width):
+    #   for y in range(1, state.getWalls().height):
+    #     print
+    for state in self.stateStack:
+      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      for action in self.getLegalActions(state):
+        print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))

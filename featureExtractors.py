@@ -128,7 +128,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     walls = state.getWalls()
     features = util.Counter()
 
-    features["bias"] = 1.0
+
 
     # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
@@ -142,17 +142,18 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     # else:
-    trueGoal = state.getTrueGoal()
-    # food = state.getFood()
-    # dist = closestFood((next_x, next_y), food, walls)
-    dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    features["goal-distance"] = float(dist) / (walls.width * walls.height)
-    # features["pos-x"] = next_x/walls.width
-    # features["pos-y"] = next_y/walls.height
+    # trueGoal = state.getTrueGoal()
+    #
+    # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
+    # features["true-goal-dist"] = dist
+    foods = state.getFood().asList()
+    for goal in foods:
+      dist = distanceToNearest((next_x, next_y), goal, walls)
+      features[goal] = float(dist) / (walls.width * walls.height)
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
-
+    features["bias"] = 1.0
     return features
 
   def getObserverFeatures(self, state, agentAction):
@@ -180,7 +181,6 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     observerFeatures[agentAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
     # Divide values in order to prevent unstable divergence
-    observerFeatures.divideAll(10.0)
 
     return observerFeatures
 
