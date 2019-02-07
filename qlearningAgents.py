@@ -85,10 +85,12 @@ class QLearningAgent(ReinforcementAgent):
 
     for action in possibleActions:
       possibleStateQValues[action] = self.getQValue(state, action)
+      # print possibleStateQValues
 
     if possibleStateQValues.totalCount() == 0:
     	return random.choice(possibleActions)
     else:
+        # print "state: %s \t action: %s" % (state.getPacmanPosition(), possibleStateQValues.argMax())
     	return possibleStateQValues.argMax()
 
   def getObserverPolicy(self, state):
@@ -131,7 +133,6 @@ class QLearningAgent(ReinforcementAgent):
     		action = random.choice(legalActions)
     	else:
 			action = self.getPolicy(state)
-
     return action
 
   def getObserverAction(self, state):
@@ -168,7 +169,7 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
 
-  def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
+  def __init__(self, epsilon=0.1,gamma=0.8,alpha=0.2, numTraining=0, **args):
     """
     These default parameters can be changed from the pacman.py command line.
     For example, to change the exploration rate, try:
@@ -248,18 +249,16 @@ class ApproximateQAgent(PacmanQAgent):
     """
     # update observer's weight
 
-    observerAction = self.getObserverAction(state)
+    # observerAction = self.getObserverAction(state)
     # observer takes action and rewarded
     # observerReward = self.observerDoAction(state, observerAction)
     # observer gets features
     # observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
     self.featExtractor.calculateHeatMap(state)
-
     observerReward = state.getObserverReward()
-    if observerReward != 0:
-      print "current pos (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      print "observer reward:"
-      print observerReward
+    # if observerReward != 0:
+    #   print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+    #   print "observer reward: ", observerReward
     # observer update weights
     # for key in observerFeatures.keys():
       # print "feature[%s], reward: %f, V(s',a'): %f, Q(s,a): %f, f(s,a): %f" % (key, observerReward,self.getObserverValue(nextState),self.getObserverQValue(state, observerAction),observerFeatures[key])
@@ -269,10 +268,9 @@ class ApproximateQAgent(PacmanQAgent):
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
     scaleCons = 1
-    # print observerReward
-    # print reward
+    # print "observerReward:", observerReward
     reward += (scaleCons * observerReward)
-    # print reward
+    # print "reward: ", reward
     for key in features.keys():
       self.weights[key] += self.alpha * (
                 reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
@@ -299,4 +297,5 @@ class ApproximateQAgent(PacmanQAgent):
       # you might want to print your weights here for debugging
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
+      print self.weights
       pass

@@ -176,7 +176,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
       observerFeatures[food] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
     # Divide values in order to prevent unstable divergence
-    observerFeatures.divideAll(10.0)
+    # observerFeatures.divideAll(10.0)
 
     return observerFeatures
 
@@ -192,11 +192,18 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     for goal in goals:
       distFromCurrentPos = distanceToNearest(pos, goal, walls)
       distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
-      print "costPos(%s,%s)" % (goal[0], goal[1])
-      print "costDiff:", costDiff
+      # distToCurrent = distanceToNearest(state.data.agentStartPos, pos, walls)
 
-      probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-      print "posibility", probability4Goals[goal]
+      # path completion
+      pcomp = distFromStartPos - distFromCurrentPos
+      # print "path complete (%s,%s)\t(%s,%s)\t%d" % (pos[0], pos[1], goal[0], goal[1], pcomp)
+      probability4Goals[goal] = math.exp(float(pcomp - walls.width + walls.height - 2) / (walls.width + walls.height))
+
+
+      # costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos - 1
+      # print "costPos(%s,%s)" % (goal[0], goal[1])
+      # print "costDiff:", costDiff
+      # probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+      # print "posibility", probability4Goals[goal]
 
       state.data.statePossibility = probability4Goals

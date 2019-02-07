@@ -282,7 +282,8 @@ class Actions:
                  Directions.SOUTH: (0, -1),
                  Directions.EAST:  (1, 0),
                  Directions.WEST:  (-1, 0),
-                 Directions.STOP:  (0, 0)}
+                 # Directions.STOP:  (0, 0)
+                 }
 
   _directionsAsList = _directions.items()
 
@@ -811,7 +812,7 @@ def chooseTrueGoal(start, goals):
   for goal in goals:
     dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
     disFromStart[goal] = dist
-  return max(disFromStart, key=disFromStart.get)
+  return min(disFromStart, key=disFromStart.get)
 
 
 
