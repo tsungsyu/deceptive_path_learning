@@ -37,7 +37,7 @@ class QLearningAgent(ReinforcementAgent):
     "You can initialize Q-values here..."
     ReinforcementAgent.__init__(self, **args)
 
-    "*** YOUR CODE HERE ***"
+    # Q table
     self.qValues = util.Counter()
     print "ALPHA", self.alpha
     print "DISCOUNT", self.discount
@@ -63,7 +63,6 @@ class QLearningAgent(ReinforcementAgent):
     possibleStateQValues = util.Counter()
     for action in self.getLegalActions(state):
     	possibleStateQValues[action] = self.getQValue(state, action)
-
     return possibleStateQValues[possibleStateQValues.argMax()]
 
   def getObserverValue(self, state):
@@ -80,18 +79,18 @@ class QLearningAgent(ReinforcementAgent):
     """
     possibleStateQValues = util.Counter()
     possibleActions = self.getLegalActions(state)
+    choosedAction = None
     if len(possibleActions) == 0:
-    	return None
+    	return choosedAction
 
     for action in possibleActions:
       possibleStateQValues[action] = self.getQValue(state, action)
-      # print possibleStateQValues
 
     if possibleStateQValues.totalCount() == 0:
-    	return random.choice(possibleActions)
+      choosedAction = random.choice(possibleActions)
     else:
-        # print "state: %s \t action: %s" % (state.getPacmanPosition(), possibleStateQValues.argMax())
-    	return possibleStateQValues.argMax()
+      choosedAction = possibleStateQValues.argMax()
+    return choosedAction
 
   def getObserverPolicy(self, state):
     """
@@ -133,6 +132,7 @@ class QLearningAgent(ReinforcementAgent):
     		action = random.choice(legalActions)
     	else:
 			action = self.getPolicy(state)
+
     return action
 
   def getObserverAction(self, state):
@@ -160,8 +160,7 @@ class QLearningAgent(ReinforcementAgent):
       NOTE: You should never call this function,
       it will be called on your behalf
     """
-    "*** YOUR CODE HERE ***"
-    print "State: ", state, " , Action: ", action, " , NextState: ", nextState, " , Reward: ", reward
+    # print "State: ", state, " , Action: ", action, " , NextState: ", nextState, " , Reward: ", reward
     print "QVALUE", self.getQValue(state, action)
     print "VALUE", self.getValue(nextState)
     self.qValues[(state, action)] = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
@@ -215,6 +214,7 @@ class ApproximateQAgent(PacmanQAgent):
     self.weights = util.Counter()
     # weight of observer
     self.observerWeight = util.Counter()
+    self.stateStack = []
 
   def getQValue(self, state, action):
     """
@@ -239,7 +239,7 @@ class ApproximateQAgent(PacmanQAgent):
     # qValue = (self.observerWeight[action] * observersFeatures[action])
     qValue = 0.0
     for key in observersFeatures.keys():
-      qValue += self.observerWeight[key] * observersFeatures[key]
+      qValue += self.observerWeight[(state, key)] * observersFeatures[key]
     return qValue
 
   def update(self, state, action, nextState, reward):
@@ -248,32 +248,71 @@ class ApproximateQAgent(PacmanQAgent):
        the reward is passed in by interacting with the environment: learingAgents.py line 200
     """
     # update observer's weight
+    # print "===============start================="
+    if state not in self.stateStack:
+      self.stateStack.append(state)
 
+    #####################################################################################
     # observerAction = self.getObserverAction(state)
-    # observer takes action and rewarded
+    # # observer takes action and rewarded
     # observerReward = self.observerDoAction(state, observerAction)
-    # observer gets features
+    # # observer gets features
     # observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
     self.featExtractor.calculateHeatMap(state)
-    observerReward = state.getObserverReward()
-    # if observerReward != 0:
-    #   print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-    #   print "observer reward: ", observerReward
-    # observer update weights
-    # for key in observerFeatures.keys():
-      # print "feature[%s], reward: %f, V(s',a'): %f, Q(s,a): %f, f(s,a): %f" % (key, observerReward,self.getObserverValue(nextState),self.getObserverQValue(state, observerAction),observerFeatures[key])
-      # self.observerWeight[key] += self.alpha * (
-      #         observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, observerAction)) * observerFeatures[key]
+    # print "nextState(%s,%s) == TrueGoal(%s,%s)" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
+    # print observerFeatures
+    # if not nextState.getPacmanPosition() == state.getTrueGoal():
+    #   # observerReward = state.getObserverReward()
+    #   if observerReward != 0:
+    #     print "current pos (%s, %s), observer reward:%f" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1], observerReward)
+    #   # observer update weights
+    #   for key in observerFeatures.keys():
+    #     # key is the action, and the state is implicitly contain in the feature(path completion is calculated by position)
+    #     # print "feature[%s], reward: %f, V(s',a'): %f, Q(s,a): %f, f(s,a): %f" % (key, observerReward,self.getObserverValue(nextState),self.getObserverQValue(state, observerAction),observerFeatures[key])
+    #     self.observerWeight[(state, key)] += self.alpha * (
+    #             observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, observerAction)) * observerFeatures[key]
+    #####################################################################################
 
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
+    # calculate reward according to probability
     scaleCons = 1
-    # print "observerReward:", observerReward
+    observerReward = self.transformProb2Reward(state)
+    # print "observerReward: ",observerReward
     reward += (scaleCons * observerReward)
-    # print "reward: ", reward
+    # print "reward:", reward
     for key in features.keys():
       self.weights[key] += self.alpha * (
                 reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
+    # print "===============end================="
+
+  def transformProb2Reward(self, state):
+    '''
+    Calculate additional reward based on the probabilities by Gaussian distribution
+    diffProb = maximum dummy goal probability - true goal probability
+    if diffProb = 0: reward is maximum
+    if diffProb > 0: reward > 0
+    if diffProb < 0: reward < 0
+    '''
+    reward = 0.0
+    probOfTrueGoal = state.data.statePossibility[state.getTrueGoal()]
+    probOfDummyGoals = {key:prob for key, prob in state.data.statePossibility.items()
+                        if key != state.getTrueGoal()}
+    # if all dummy goals are ate, retween 0
+    if len(probOfDummyGoals) == 0:
+      return reward
+
+    maxOfDummyGoal = max(probOfDummyGoals.values())
+    diffProb = maxOfDummyGoal - probOfTrueGoal
+    variance = 1
+    miu = 0
+    reward = 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (diffProb-miu)**2 / 2 * variance)
+    # print "probOfTrueGoal: ", probOfTrueGoal
+    # print "maxOfDummyGoal: ", maxOfDummyGoal
+    if diffProb < 0:
+      return reward * (-1)
+    else:
+      return reward
 
   def observerDoAction(self, state, observerAction):
     '''
@@ -282,7 +321,7 @@ class ApproximateQAgent(PacmanQAgent):
     '''
     print "ob (%s,%s) ? (%s, %s)" % (observerAction[0], observerAction[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
     if observerAction == state.getTrueGoal():
-      reward = 10.0
+      reward = 50.0
     else:
       reward = -10.0
     return reward
@@ -293,9 +332,19 @@ class ApproximateQAgent(PacmanQAgent):
     PacmanQAgent.final(self, state)
     # did we finish training?
     if self.episodesSoFar == self.numTraining:
-
       # you might want to print your weights here for debugging
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
-      print self.weights
+      for state in self.stateStack:
+        print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+        for action in self.getLegalActions(state):
+          print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))
       pass
+
+    for state in self.stateStack:
+      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      for action in self.getLegalActions(state):
+        print "%s: %f" % (action, self.getQValue(state, action))
+      for goal in state.getFood().asList():
+        print "%s: %f" % (goal, self.getObserverQValue(state, goal))
+      print "\n"

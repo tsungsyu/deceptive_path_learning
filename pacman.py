@@ -279,7 +279,7 @@ class GameState:
 
 SCARED_TIME = 40    # Moves ghosts are scared
 COLLISION_TOLERANCE = 0.7 # How close ghosts must be to Pacman to kill
-TIME_PENALTY = 0 # Number of points lost each round
+TIME_PENALTY = 1 # Number of points lost each round
 
 class ClassicGameRules:
   """
@@ -395,7 +395,7 @@ class PacmanRules:
       numFood = state.getNumFood()
       if position == state.data.trueGoal:
         # True goal is reached
-        state.data.scoreChange += 1
+        state.data.scoreChange += 50
         # state.data.scoreChange += 500
         state.data.reachedTrueGoal = True
         state.data._win = True
@@ -404,7 +404,7 @@ class PacmanRules:
         # state.data.scoreChange += 500
         state.data._win = True
       else:
-        state.data.scoreChange += -1
+        state.data.scoreChange += -50
 
     # Eat capsule
     if( position in state.getCapsules() ):

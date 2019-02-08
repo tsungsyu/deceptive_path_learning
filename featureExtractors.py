@@ -128,7 +128,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     walls = state.getWalls()
     features = util.Counter()
 
-    features["bias"] = 1.0
+
 
     # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
@@ -142,15 +142,18 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     # else:
-    trueGoal = state.getTrueGoal()
-    # food = state.getFood()
-    # dist = closestFood((next_x, next_y), food, walls)
-    dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    features["goal-distance"] = float(dist) / (walls.width * walls.height)
+    # trueGoal = state.getTrueGoal()
+    #
+    # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
+    # features["true-goal-dist"] = dist
+    foods = state.getFood().asList()
+    for goal in foods:
+      dist = distanceToNearest((next_x, next_y), goal, walls)
+      features[goal] = float(dist) / (walls.width * walls.height)
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
-
+    features["bias"] = 1.0
     return features
 
   def getObserverFeatures(self, state, agentAction):
@@ -165,18 +168,19 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     stepsSoFar = state.getStepsSoFar()
     walls = state.getWalls()
     observerFeatures = util.Counter()
-    x, y = state.getPacmanPosition()
-    foodList = state.data.food.asList()
-    for food in foodList:
-      # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
-      # if food == agentAction:
-      distFromCurrentPos = distanceToNearest((x, y), food, walls)
-      distFromStartPos = distanceToNearest(state.data.agentStartPos, food, walls)
-      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
+    pos = state.getPacmanPosition()
+    # foodList = state.data.food.asList()
+    # for food in foodList:
+    # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
+    # if food == agentAction:
+    distFromCurrentPos = distanceToNearest(pos, agentAction, walls)
 
-      observerFeatures[food] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+    # TODO to use probabilty as feature
+    distFromStartPos = distanceToNearest(state.data.agentStartPos, agentAction, walls)
+    costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
+
+    observerFeatures[agentAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
     # Divide values in order to prevent unstable divergence
-    # observerFeatures.divideAll(10.0)
 
     return observerFeatures
 
@@ -192,18 +196,6 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     for goal in goals:
       distFromCurrentPos = distanceToNearest(pos, goal, walls)
       distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-      # distToCurrent = distanceToNearest(state.data.agentStartPos, pos, walls)
-
-      # path completion
-      pcomp = distFromStartPos - distFromCurrentPos
-      # print "path complete (%s,%s)\t(%s,%s)\t%d" % (pos[0], pos[1], goal[0], goal[1], pcomp)
-      probability4Goals[goal] = math.exp(float(pcomp - walls.width + walls.height - 2) / (walls.width + walls.height))
-
-
-      # costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos - 1
-      # print "costPos(%s,%s)" % (goal[0], goal[1])
-      # print "costDiff:", costDiff
-      # probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-      # print "posibility", probability4Goals[goal]
-
+      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
+      probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
       state.data.statePossibility = probability4Goals
