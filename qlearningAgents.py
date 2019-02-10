@@ -67,8 +67,10 @@ class QLearningAgent(ReinforcementAgent):
 
   def getObserverValue(self, state):
     possibleStateQValues = util.Counter()
-    for action in state.getFood().asList():
-      possibleStateQValues[action] = self.getObserverQValue(state, action)
+    for action in self.getLegalActions(state):
+      for observerAction in state.getFood().asList():
+        possibleStateQValues[(action, observerAction)] = self.getObserverQValue(state, action, observerAction)
+
     return possibleStateQValues[possibleStateQValues.argMax()]
 
   def getPolicy(self, state):
@@ -92,7 +94,7 @@ class QLearningAgent(ReinforcementAgent):
       choosedAction = possibleStateQValues.argMax()
     return choosedAction
 
-  def getObserverPolicy(self, state):
+  def getObserverPolicy(self, state, agentAction):
     """
     Compute the best prediction to take in a state.
     :param state:
@@ -104,7 +106,7 @@ class QLearningAgent(ReinforcementAgent):
       return None
 
     for (x, y) in possibleActions:
-      possibleStateQValues[(x, y)] = self.getObserverQValue(state, (x, y))
+      possibleStateQValues[(x, y)] = self.getObserverQValue(state, agentAction, (x, y))
     # print "(%s,%s) Q values:" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
     # print possibleStateQValues
     if possibleStateQValues.totalCount() == 0:
@@ -135,7 +137,7 @@ class QLearningAgent(ReinforcementAgent):
 
     return action
 
-  def getObserverAction(self, state):
+  def getObserverAction(self, state, agentAction):
     """
     Pick one of the possible goal as based on the Q value of the state
     :param state:
@@ -148,7 +150,7 @@ class QLearningAgent(ReinforcementAgent):
       if util.flipCoin(self.epsilon):
         action.append(random.choice(possibleGoals))
       else:
-        action.append(self.getObserverPolicy(state))
+        action.append(self.getObserverPolicy(state, agentAction))
     return action[0]
 
   def update(self, state, action, nextState, reward):
@@ -227,19 +229,19 @@ class ApproximateQAgent(PacmanQAgent):
     	qValue += (self.weights[key] * features[key])
     return qValue
 
-  def getObserverQValue(self, state, action):
+  def getObserverQValue(self, state, action, observerAction):
     """
       Should return the Q of observer's prediction at each state
       Q(state,action) = w * featureVector
       feature vectors are the path completion respect to each possible goal
       where * is the dotProduct operator
     """
-    observersFeatures = self.featExtractor.getObserverFeatures(state, action)
+    observersFeatures = self.featExtractor.getObserverFeatures(state, action, observerAction)
     # TODO considering only to fetch the feature which is predicted by the observer
     # qValue = (self.observerWeight[action] * observersFeatures[action])
     qValue = 0.0
     for key in observersFeatures.keys():
-      qValue += self.observerWeight[(state, key)] * observersFeatures[key]
+      qValue += self.observerWeight[(state, action, key)] * observersFeatures[key]
     return qValue
 
   def update(self, state, action, nextState, reward):
@@ -251,11 +253,13 @@ class ApproximateQAgent(PacmanQAgent):
     print "===============start================="
     if state not in self.stateStack:
       self.stateStack.append(state)
-    observerAction = self.getObserverAction(state)
+    observerReward = 0
+    # if self.episodesSoFar > self.numTraining / 2:
+    observerAction = self.getObserverAction(state, action)
     # observer takes action and rewarded
     observerReward = self.observerDoAction(state, observerAction)
     # observer gets features
-    observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
+    observerFeatures = self.featExtractor.getObserverFeatures(state, action, observerAction)
     self.featExtractor.calculateHeatMap(state)
 
     # print "nextState(%s,%s) == TrueGoal(%s,%s)" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
@@ -268,8 +272,8 @@ class ApproximateQAgent(PacmanQAgent):
       for key in observerFeatures.keys():
         # key is the action, and the state is implicitly contain in the feature(path completion is calculated by position)
         # print "feature[%s], reward: %f, V(s',a'): %f, Q(s,a): %f, f(s,a): %f" % (key, observerReward,self.getObserverValue(nextState),self.getObserverQValue(state, observerAction),observerFeatures[key])
-        self.observerWeight[(state, key)] += self.alpha * (
-                observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, observerAction)) * observerFeatures[key]
+        self.observerWeight[(state, action, key)] += self.alpha * (
+                observerReward + self.discount * self.getObserverValue(nextState) - self.getObserverQValue(state, action, observerAction)) * observerFeatures[key]
 
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
@@ -304,8 +308,12 @@ class ApproximateQAgent(PacmanQAgent):
       # you might want to print your weights here for debugging
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
-      for state in self.stateStack:
-        print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-        for action in self.getLegalActions(state):
-          print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))
       pass
+
+    for state in self.stateStack:
+      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      for action in self.getLegalActions(state):
+        print "%s: %f" % (action, self.getQValue(state, action))
+        for goal in state.getFood().asList():
+          print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
+      print "\n"

@@ -806,12 +806,12 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
   return None
 
 def chooseTrueGoal(start, goals):
-  disFromStart = dict()
-  for goal in goals:
-    dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
-    disFromStart[goal] = dist
-  return max(disFromStart, key=disFromStart.get)
-
+  # disFromStart = dict()
+  # for goal in goals:
+  #   dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
+  #   disFromStart[goal] = dist
+  # return max(disFromStart, key=disFromStart.get)
+  return random.choice(goals)
 
 
 

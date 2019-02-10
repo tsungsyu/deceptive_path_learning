@@ -156,7 +156,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     features["bias"] = 1.0
     return features
 
-  def getObserverFeatures(self, state, agentAction):
+  def getObserverFeatures(self, state, action, observerAction):
     """
     extract features of observer
     mainly calculate the path completion from current node
@@ -169,18 +169,17 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     walls = state.getWalls()
     observerFeatures = util.Counter()
     pos = state.getPacmanPosition()
-    # foodList = state.data.food.asList()
-    # for food in foodList:
-    # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
-    # if food == agentAction:
-    distFromCurrentPos = distanceToNearest(pos, agentAction, walls)
+    dx, dy = Actions.directionToVector(action)
+    next_x, next_y = int(pos[0] + dx), int(pos[1] + dy)
+
+    distFromCurrentPos = distanceToNearest((next_x, next_y), observerAction, walls)
 
     # TODO to use probabilty as feature
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, agentAction, walls)
+    distFromStartPos = distanceToNearest(state.data.agentStartPos, observerAction, walls)
     costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
 
-    observerFeatures[agentAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-    # Divide values in order to prevent unstable divergence
+    observerFeatures[observerAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+    observerFeatures["bias"] = 1.0
 
     return observerFeatures
 
