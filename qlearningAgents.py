@@ -85,6 +85,9 @@ class QLearningAgent(ReinforcementAgent):
 
     for action in possibleActions:
       possibleStateQValues[action] = self.getQValue(state, action)
+    # if state.getPacmanPosition() == (1, 1) or state.getPacmanPosition() == (2, 1):
+      # print "Q values for each action in (%s,%s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      # print possibleStateQValues
 
     if possibleStateQValues.totalCount() == 0:
       choosedAction = random.choice(possibleActions)
@@ -129,8 +132,8 @@ class QLearningAgent(ReinforcementAgent):
     "*** YOUR CODE HERE ***"
     if len(legalActions) > 0:
     	if util.flipCoin(self.epsilon):
-    		action = random.choice(legalActions)
-    	else:
+    	  action = random.choice(legalActions)
+        else:
 			action = self.getPolicy(state)
 
     return action
@@ -185,6 +188,7 @@ class PacmanQAgent(QLearningAgent):
     args['numTraining'] = numTraining
     self.index = 0  # This is always Pacman
     QLearningAgent.__init__(self, **args)
+
 
   def getAction(self, state):
     """
@@ -258,7 +262,8 @@ class ApproximateQAgent(PacmanQAgent):
     # observerReward = self.observerDoAction(state, observerAction)
     # # observer gets features
     # observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
-    self.featExtractor.calculateHeatMap(state)
+    # state.getPacmanPosition() != state.getTrueGoal() or
+    self.featExtractor.calculateHeatMap(nextState)
     # print "nextState(%s,%s) == TrueGoal(%s,%s)" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
     # print observerFeatures
     # if not nextState.getPacmanPosition() == state.getTrueGoal():
@@ -277,8 +282,8 @@ class ApproximateQAgent(PacmanQAgent):
     # update reward of agent respect to the reward of observer
     # calculate reward according to probability
     scaleCons = 1
-    observerReward = self.transformProb2Reward(state)
-    # print "observerReward: ",observerReward
+    observerReward = self.transformProb2Value(nextState)
+    print "observerReward scale up: ", scaleCons * observerReward
     reward += (scaleCons * observerReward)
     # print "reward:", reward
     for key in features.keys():
@@ -286,33 +291,33 @@ class ApproximateQAgent(PacmanQAgent):
                 reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
     # print "===============end================="
 
-  def transformProb2Reward(self, state):
+  def transformProb2Value(self, state):
     '''
     Calculate additional reward based on the probabilities by Gaussian distribution
-    diffProb = maximum dummy goal probability - true goal probability
+    diffProb = min difference of (dummy goal probability - true goal probability)
     if diffProb = 0: reward is maximum
     if diffProb > 0: reward > 0
     if diffProb < 0: reward < 0
     '''
-    reward = 0.0
+    value = 0.0
+    if state.getTrueGoal() not in state.getFood().asList():
+      return value
     probOfTrueGoal = state.data.statePossibility[state.getTrueGoal()]
-    probOfDummyGoals = {key:prob for key, prob in state.data.statePossibility.items()
+    probDiffOfDummyGoals = {key:prob - probOfTrueGoal for key, prob in state.data.statePossibility.items()
                         if key != state.getTrueGoal()}
     # if all dummy goals are ate, retween 0
-    if len(probOfDummyGoals) == 0:
-      return reward
+    if len(probDiffOfDummyGoals) == 0:
+      return value
 
-    maxOfDummyGoal = max(probOfDummyGoals.values())
-    diffProb = maxOfDummyGoal - probOfTrueGoal
+    diffProb = min(probDiffOfDummyGoals.values())
     variance = 1
     miu = 0
-    reward = 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (diffProb-miu)**2 / 2 * variance)
-    # print "probOfTrueGoal: ", probOfTrueGoal
-    # print "maxOfDummyGoal: ", maxOfDummyGoal
-    if diffProb < 0:
-      return reward * (-1)
+    value = 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (diffProb-miu)**2 / 2 * variance)
+    print "diffProb: ", diffProb
+    if diffProb < miu:
+      return value * (-1)
     else:
-      return reward
+      return value
 
   def observerDoAction(self, state, observerAction):
     '''
@@ -335,6 +340,7 @@ class ApproximateQAgent(PacmanQAgent):
       # you might want to print your weights here for debugging
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
+      print self.weights
       for state in self.stateStack:
         print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
         for action in self.getLegalActions(state):
