@@ -359,3 +359,4 @@ class ApproximateQAgent(PacmanQAgent):
     #   for goal in state.getFood().asList():
     #     print "%s: %f" % (goal, self.getObserverQValue(state, goal))
     #   print "\n"
+    print self.weights
