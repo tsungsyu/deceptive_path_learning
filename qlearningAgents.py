@@ -283,7 +283,6 @@ class ApproximateQAgent(PacmanQAgent):
     # calculate reward according to probability
     scaleCons = 1
     observerReward = self.transformProb2Value(nextState)
-    print "observerReward scale up: ", scaleCons * observerReward
     reward += (scaleCons * observerReward)
     # print "reward:", reward
     for key in features.keys():
@@ -310,14 +309,14 @@ class ApproximateQAgent(PacmanQAgent):
       return value
 
     diffProb = min(probDiffOfDummyGoals.values())
-    variance = 1
+    variance = 0.2
     miu = 0
     value = 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (diffProb-miu)**2 / 2 * variance)
-    print "diffProb: ", diffProb
-    if diffProb < miu:
-      return value * (-1)
-    else:
-      return value
+    # if diffProb < miu:
+    #   return value * (-1)
+    # else:
+    #   return value
+    return value
 
   def observerDoAction(self, state, observerAction):
     '''

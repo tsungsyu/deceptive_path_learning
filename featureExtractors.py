@@ -146,10 +146,14 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     #
     # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
     # features["true-goal-dist"] = dist
+
     foods = state.getFood().asList()
     for goal in foods:
       dist = distanceToNearest((next_x, next_y), goal, walls)
       features[goal] = float(dist) / (walls.width * walls.height)
+
+    # features["x"] = x
+    # features["y"] = y
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
