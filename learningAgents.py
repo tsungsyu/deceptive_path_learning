@@ -133,16 +133,25 @@ class ReinforcementAgent(ValueEstimationAgent):
     self.lastState = None
     self.lastAction = None
     self.episodeRewards = 0.0
+    self.stateStack = []
 
   def stopEpisode(self):
     """
       Called by environment when episode is done
     """
+    print "Finish Episode %d:" % self.episodesSoFar
     if self.episodesSoFar < self.numTraining:
 		  self.accumTrainRewards += self.episodeRewards
     else:
 		  self.accumTestRewards += self.episodeRewards
     self.episodesSoFar += 1
+
+    for state in self.stateStack:
+      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      for action in self.getLegalActions(state):
+        print "%s: %f" % (action, self.getQValue(state, action))
+      print "\n"
+
     if self.episodesSoFar >= self.numTraining:
       # Take off the training wheels
       self.epsilon = 0.0    # no exploration
