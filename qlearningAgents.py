@@ -263,7 +263,7 @@ class ApproximateQAgent(PacmanQAgent):
     # # observer gets features
     # observerFeatures = self.featExtractor.getObserverFeatures(state, observerAction)
     # state.getPacmanPosition() != state.getTrueGoal() or
-    self.featExtractor.calculateHeatMap(nextState)
+    # self.featExtractor.calculateHeatMap(nextState)
     # print "nextState(%s,%s) == TrueGoal(%s,%s)" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], state.getTrueGoal()[0], state.getTrueGoal()[1])
     # print observerFeatures
     # if not nextState.getPacmanPosition() == state.getTrueGoal():
@@ -281,9 +281,11 @@ class ApproximateQAgent(PacmanQAgent):
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
     # calculate reward according to probability
-    scaleCons = 1
-    observerReward = self.transformProb2Value(nextState)
-    reward += (scaleCons * observerReward)
+    # scaleCons = 1.0
+    # observerReward = self.transformProb2Value(nextState)
+    # reward += (scaleCons * observerReward)
+    # if state.getPacmanPosition()[0] == 4 and state.getPacmanPosition()[1] == 1:
+    #   print "nextState: (%s,%s), action:%s ; reward: %f" % (nextState.getPacmanPosition()[0], nextState.getPacmanPosition()[1], action, reward)
     # print "reward:", reward
     for key in features.keys():
       self.weights[key] += self.alpha * (
@@ -301,6 +303,9 @@ class ApproximateQAgent(PacmanQAgent):
     value = 0.0
     if state.getTrueGoal() not in state.getFood().asList():
       return value
+    # if state.getPacmanPosition()[0] == 5 and state.getPacmanPosition()[1] == 1:
+    #   print "statePossibility:"
+    #   print state.data.statePossibility
     probOfTrueGoal = state.data.statePossibility[state.getTrueGoal()]
     probDiffOfDummyGoals = {key:prob - probOfTrueGoal for key, prob in state.data.statePossibility.items()
                         if key != state.getTrueGoal()}
@@ -309,6 +314,7 @@ class ApproximateQAgent(PacmanQAgent):
       return value
 
     diffProb = min(probDiffOfDummyGoals.values())
+
     variance = 1
     miu = 0
     value = 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (diffProb-miu)**2 / 2 * variance)
@@ -346,10 +352,10 @@ class ApproximateQAgent(PacmanQAgent):
           print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))
       pass
 
-    for state in self.stateStack:
-      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      for action in self.getLegalActions(state):
-        print "%s: %f" % (action, self.getQValue(state, action))
-      for goal in state.getFood().asList():
-        print "%s: %f" % (goal, self.getObserverQValue(state, goal))
-      print "\n"
+    # for state in self.stateStack:
+    #   print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+    #   for action in self.getLegalActions(state):
+    #     print "%s: %f" % (action, self.getQValue(state, action))
+    #   for goal in state.getFood().asList():
+    #     print "%s: %f" % (goal, self.getObserverQValue(state, goal))
+    #   print "\n"

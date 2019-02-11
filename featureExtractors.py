@@ -51,7 +51,7 @@ def closestFood(pos, food, walls):
 def distanceToNearest(pos, targetType, walls):
   """
   Returns distance to the nearest item of the specified type (e.g. food, Power Capsule)
-  """
+
   # Open-list nodes consist of position x,y and distance (initialised at 0)
   fringe = [(pos[0], pos[1], 0)]
 
@@ -73,6 +73,10 @@ def distanceToNearest(pos, targetType, walls):
       fringe.append((nbr_x, nbr_y, dist+1))
 
   # If target item not found
+  return None
+  """
+  if targetType is not None and pos is not None:
+    return abs(targetType[0] - pos[0]) + abs(targetType[1] - pos[1])
   return None
 
 
@@ -142,21 +146,23 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     # else:
-    # trueGoal = state.getTrueGoal()
+    trueGoal = state.getTrueGoal()
     #
-    # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    # features["true-goal-dist"] = dist
+    dist = distanceToNearest((next_x, next_y), trueGoal, walls)
+    features["true-goal-dist"] = dist/10
 
-    foods = state.getFood().asList()
-    for goal in foods:
-      dist = distanceToNearest((next_x, next_y), goal, walls)
-      features[goal] = float(dist) / (walls.width * walls.height)
+    # foods = state.getFood().asList()
+    # for goal in foods:
+    #   dist = distanceToNearest((next_x, next_y), goal, walls)
+    #   features[goal] = float(dist) / (walls.width * walls.height)
 
     # features["x"] = x
     # features["y"] = y
 
+    features["probDiff"] = prob2Value(state)
+
     # Divide values in order to prevent unstable divergence
-    features.divideAll(10.0)
+    # features.divideAll(10.0)
     features["bias"] = 1.0
     return features
 
@@ -200,6 +206,60 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     for goal in goals:
       distFromCurrentPos = distanceToNearest(pos, goal, walls)
       distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
+      distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
+      # costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
+      costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos -1
       probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
       state.data.statePossibility = probability4Goals
+
+def prob2Value(state):
+  '''
+  Calculate additional reward based on the probabilities by Gaussian distribution
+  diffProb = maximum dummy goal probability - true goal probability
+  if diffProb = 0: reward is maximum
+  if diffProb > 0: reward > 0
+  if diffProb < 0: reward < 0
+  '''
+  value = 0.0
+  probability4Goals = calculateProbs(state)
+  probOfTrueGoal = probability4Goals[state.getTrueGoal()]
+  probDiffOfDummyGoals = {key:prob - probOfTrueGoal for key, prob in probability4Goals.items()
+                      if key != state.getTrueGoal()}
+
+  # if all dummy goals are ate, return 0
+  if len(probDiffOfDummyGoals) == 0:
+    return value
+
+  minProbDiffOfDummyGoal = min(probDiffOfDummyGoals.values())
+  print "minProbDiffOfDummyGoal: ", minProbDiffOfDummyGoal
+  variance = 1
+  miu = 0
+  scaleup = 10
+  value = scaleup * 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (minProbDiffOfDummyGoal-miu)**2 / 2 * variance)
+  # print "probOfTrueGoal: ", probOfTrueGoal
+  # print "maxOfDummyGoal: ", maxOfDummyGoal
+  if minProbDiffOfDummyGoal < miu:
+    print "value: ", value
+    return value * (-1)
+  else:
+    print "value: ", value
+    return value
+
+def calculateProbs(state):
+  pos = state.getPacmanPosition()
+  stepsSoFar = state.getStepsSoFar()
+  walls = state.getWalls()
+
+  probability4Goals = dict()
+  goals = state.data.food.asList()
+
+  for goal in goals:
+    distFromCurrentPos = distanceToNearest(pos, goal, walls)
+    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
+    distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
+    # costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos - 1
+    costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos - 1
+    probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+
+  print probability4Goals
+  return probability4Goals

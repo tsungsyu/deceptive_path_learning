@@ -810,7 +810,7 @@ def chooseTrueGoal(start, goals):
   for goal in goals:
     dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
     disFromStart[goal] = dist
-  return min(disFromStart, key=disFromStart.get)
+  return max(disFromStart, key=disFromStart.get)
 
 
 
