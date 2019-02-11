@@ -149,7 +149,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     trueGoal = state.getTrueGoal()
     #
     dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    features["true-goal-dist"] = dist/10
+    features["true-goal-dist"] = dist
 
     # foods = state.getFood().asList()
     # for goal in foods:
@@ -162,7 +162,7 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     features["probDiff"] = prob2Value(state)
 
     # Divide values in order to prevent unstable divergence
-    # features.divideAll(10.0)
+    features.divideAll(10.0)
     features["bias"] = 1.0
     return features
 
@@ -231,19 +231,20 @@ def prob2Value(state):
     return value
 
   minProbDiffOfDummyGoal = min(probDiffOfDummyGoals.values())
-  print "minProbDiffOfDummyGoal: ", minProbDiffOfDummyGoal
+  # print "minProbDiffOfDummyGoal: ", minProbDiffOfDummyGoal
   variance = 1
   miu = 0
   scaleup = 10
   value = scaleup * 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (minProbDiffOfDummyGoal-miu)**2 / 2 * variance)
   # print "probOfTrueGoal: ", probOfTrueGoal
   # print "maxOfDummyGoal: ", maxOfDummyGoal
-  if minProbDiffOfDummyGoal < miu:
-    print "value: ", value
-    return value * (-1)
-  else:
-    print "value: ", value
-    return value
+  # if minProbDiffOfDummyGoal < miu:
+  #   print "value: ", value
+  #   return value * (-1)
+  # else:
+  #   print "value: ", value
+  #   return value
+  return value
 
 def calculateProbs(state):
   pos = state.getPacmanPosition()
