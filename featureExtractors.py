@@ -51,7 +51,6 @@ def closestFood(pos, food, walls):
 def distanceToNearest(pos, targetType, walls):
   """
   Returns distance to the nearest item of the specified type (e.g. food, Power Capsule)
-  """
   # Open-list nodes consist of position x,y and distance (initialised at 0)
   fringe = [(pos[0], pos[1], 0)]
 
@@ -73,6 +72,9 @@ def distanceToNearest(pos, targetType, walls):
       fringe.append((nbr_x, nbr_y, dist+1))
 
   # If target item not found
+  """
+  if targetType is not None and pos is not None:
+     return abs(targetType[0] - pos[0]) + abs(targetType[1] - pos[1])
   return None
 
 
@@ -127,74 +129,20 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     # Extract the grid of wall locations and initialise the counter of features
     walls = state.getWalls()
     features = util.Counter()
-
-
-
     # Compute the location of pacman after he takes the next action
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
 
-    # First feature guides the agent to the last deceptive point (LDP)
-    # if not state.reachedLdp():
-    #   dist = distanceToNearest((next_x, next_y), state.getLdp(), walls)
-    #   features["LDP-distance"] = float(dist) / (walls.width * walls.height)
-
-    # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
-    # else:
-    # trueGoal = state.getTrueGoal()
-    #
-    # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    # features["true-goal-dist"] = dist
     foods = state.getFood().asList()
     for goal in foods:
       dist = distanceToNearest((next_x, next_y), goal, walls)
       features[goal] = float(dist) / (walls.width * walls.height)
+    # features["x"] = next_x
+    # features["y"] = next_y
+
 
     # Divide values in order to prevent unstable divergence
     features.divideAll(10.0)
     features["bias"] = 1.0
     return features
-
-  def getObserverFeatures(self, state, action, observerAction):
-    """
-    extract features of observer
-    mainly calculate the path completion from current node
-    :param state:
-    :param agentAction:
-    :return:
-    """
-    # Extract the grid of wall locations and initialise the counter of features
-    stepsSoFar = state.getStepsSoFar()
-    walls = state.getWalls()
-    observerFeatures = util.Counter()
-    pos = state.getPacmanPosition()
-    dx, dy = Actions.directionToVector(action)
-    next_x, next_y = int(pos[0] + dx), int(pos[1] + dy)
-
-    distFromCurrentPos = distanceToNearest((next_x, next_y), observerAction, walls)
-
-    # TODO to use probabilty as feature
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, observerAction, walls)
-    costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
-
-    observerFeatures[observerAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-    observerFeatures["bias"] = 1.0
-
-    return observerFeatures
-
-  def calculateHeatMap(self, state):
-
-    pos = state.getPacmanPosition()
-    stepsSoFar = state.getStepsSoFar()
-    walls = state.getWalls()
-
-    probability4Goals = dict()
-    goals = state.data.food.asList()
-
-    for goal in goals:
-      distFromCurrentPos = distanceToNearest(pos, goal, walls)
-      distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-      costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
-      probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-      state.data.statePossibility = probability4Goals
