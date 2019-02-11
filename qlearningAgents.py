@@ -218,7 +218,6 @@ class ApproximateQAgent(PacmanQAgent):
     self.weights = util.Counter()
     # weight of observer
     self.observerWeight = util.Counter()
-    self.stateStack = []
 
   def getQValue(self, state, action):
     """
@@ -346,10 +345,6 @@ class ApproximateQAgent(PacmanQAgent):
       print "--TRAINING VARIABLES--"
       print state.data.__dict__
       print self.weights
-      for state in self.stateStack:
-        print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-        for action in self.getLegalActions(state):
-          print "action: %s, Qvalue: %f" % (action, self.getQValue(state, action))
       pass
 
     # for state in self.stateStack:
