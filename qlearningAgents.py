@@ -309,7 +309,7 @@ class ApproximateQAgent(PacmanQAgent):
       return value
 
     diffProb = min(probDiffOfDummyGoals.values())
-    variance = 0.2
+    variance = 1
     miu = 0
     value = 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (diffProb-miu)**2 / 2 * variance)
     # if diffProb < miu:
