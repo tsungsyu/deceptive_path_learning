@@ -95,8 +95,6 @@ class QLearningAgent(ReinforcementAgent):
     return choosedAction
 
   def getObserverResult(self, state):
-    print state.data
-
     possibleStateQValues = util.Counter()
     possibleActions = self.getLegalActions(state)
     choosedAction = None
