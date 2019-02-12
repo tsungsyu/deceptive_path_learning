@@ -180,8 +180,9 @@ def calculateProbs(state):
 
 def distanceRandomSimulation(state, target):
     """
-    :param target:
-    :param state:
+    random simulation until reach the target
+    :param state: from this state
+    :param target: position of target (x, y)
     :return:
     """
     new_state = state.deepCopy()
@@ -193,25 +194,27 @@ def distanceRandomSimulation(state, target):
     while not reached:
       # Get valid actions
       x, y = new_state.getPacmanPosition()
+      # Get valid next state
       legalFutureStates = Actions.getLegalNeighbors((x, y), walls)
+      # the true goal state counld not be generated
       if trueGoal != target and trueGoal in legalFutureStates:
         legalFutureStates.remove(trueGoal)
+      # Get legal actions
       actions = new_state.getLegalActions(0)
-      current_direction = new_state.getPacmanState().configuration.direction
       # The agent should not use the reverse direction during simulation
+      current_direction = new_state.getPacmanState().configuration.direction
       reversed_direction = Directions.REVERSE[current_direction]
       if reversed_direction in actions and len(actions) > 1:
           actions.remove(reversed_direction)
-
       for a in actions:
         dx, dy = Actions.directionToVector(a)
         next_x, next_y = int(x + dx), int(y + dy)
+        # next state must be a legal state
         if (next_x, next_y) not in legalFutureStates:
             actions.remove(a)
       # Randomly chooses a valid action
       action = random.choice(actions)
       # interact with environment and generate new state
-
       new_state = new_state.generateSuccessor(0, action)
       newPosition = new_state.getPacmanPosition()
       actionsStack.append(action)
