@@ -11,6 +11,7 @@
 from game import Directions, Actions
 import util
 import math
+import random
 class FeatureExtractor:
   def getFeatures(self, state, action):
     """
@@ -47,38 +48,6 @@ def closestFood(pos, food, walls):
       fringe.append((nbr_x, nbr_y, dist+1))
   # no food found
   return None
-
-def distanceToNearest(pos, targetType, walls):
-  """
-  Returns distance to the nearest item of the specified type (e.g. food, Power Capsule)
-
-  # Open-list nodes consist of position x,y and distance (initialised at 0)
-  fringe = [(pos[0], pos[1], 0)]
-
-  # Closed list as a set (unordered list of unique elements)
-  expanded = set()
-
-  while fringe:
-    # Pop latest node from open list, and add to closed list
-    pos_x, pos_y, dist = fringe.pop(0)
-    if (pos_x, pos_y) in expanded:
-      continue
-    expanded.add((pos_x, pos_y))
-    # Exit if the target item already exists at this location
-    if pos_x == targetType[0] and pos_y == targetType[1]:
-      return dist
-    # Otherwise, investigate neighbouring nodes and add them to the open list
-    nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
-    for nbr_x, nbr_y in nbrs:
-      fringe.append((nbr_x, nbr_y, dist+1))
-
-  # If target item not found
-  return None
-  """
-  if targetType is not None and pos is not None:
-    return abs(targetType[0] - pos[0]) + abs(targetType[1] - pos[1])
-  return None
-
 
 class SimpleExtractor(FeatureExtractor):
   """
@@ -137,63 +106,18 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
 
-    # First feature guides the agent to the last deceptive point (LDP)
-    # if not state.reachedLdp():
-    #   dist = distanceToNearest((next_x, next_y), state.getLdp(), walls)
-    #   features["LDP-distance"] = float(dist) / (walls.width * walls.height)
-
-    # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
-    # else:
-    # trueGoal = state.getTrueGoal()
-    # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    # features["true-goal-dist"] = dist
-
     foods = state.getFood().asList()
-    for goal in foods:
-      dist = distanceToNearest((next_x, next_y), goal, walls)
-      features[goal] = float(dist) / (walls.width * walls.height)
-    #   features[goal] = calculateProbByCostDiff(state, goal) * 10
-    #   print "feature(%s,%s): %f" % (goal[0],goal[1], features[goal])
-
-    # features["x"] = x
-    # features["y"] = y
-
-    # probs = calculateProbs(state)
-    # features["probDiff"] = prob2Value(state, probs)
-
-    # Divide values in order to prevent unstable divergence
+    try:
+      next_state = state.generateSuccessor(0, action)
+      for goal in foods:
+        dist = distanceRandomSimulation(next_state, goal)
+        features[goal] = float(dist) / (walls.width * walls.height)
+    except:
+      features[state.getTrueGoal()] = 0
     features.divideAll(10.0)
 
     features["bias"] = 1.0
     return features
-
-  def getObserverFeatures(self, state, agentAction):
-    """
-    extract features of observer
-    mainly calculate the path completion from current node
-    :param state:
-    :param agentAction:
-    :return:
-    """
-    # Extract the grid of wall locations and initialise the counter of features
-    stepsSoFar = state.getStepsSoFar()
-    walls = state.getWalls()
-    observerFeatures = util.Counter()
-    pos = state.getPacmanPosition()
-    # foodList = state.data.food.asList()
-    # for food in foodList:
-    # TODO only when choosing the feature which are not observer's choice the Q value seems making sence
-    # if food == agentAction:
-    distFromCurrentPos = distanceToNearest(pos, agentAction, walls)
-
-    # TODO to use probabilty as feature
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, agentAction, walls)
-    costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos
-
-    observerFeatures[agentAction] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-    # Divide values in order to prevent unstable divergence
-
-    return observerFeatures
 
   def calculateHeatMap(self, state):
 
@@ -205,10 +129,9 @@ class DeceptivePlannerExtractor(FeatureExtractor):
     goals = state.data.food.asList()
 
     for goal in goals:
-      distFromCurrentPos = distanceToNearest(pos, goal, walls)
-      distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-      distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
-      # costDiff = distFromCurrentPos + stepsSoFar - distFromStartPos -1
+      distFromCurrentPos = distanceRandomSimulation(state, goal)
+      distFromStartPos = stepsSoFar
+      distToCurrentPos = distanceRandomSimulation(state, state.data.agentStartPos)
       costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos -1
       probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
       state.data.statePossibility = probability4Goals
@@ -248,41 +171,77 @@ def calculateProbs(state):
   goals = state.data.food.asList()
 
   for goal in goals:
-    distFromCurrentPos = distanceToNearest(pos, goal, walls)
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-    distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
+    distFromCurrentPos = distanceRandomSimulation(state, goal)
+    distFromStartPos = stepsSoFar
+    distToCurrentPos = distanceRandomSimulation(state, state.data.agentStartPos)
     costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
     probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
   return probability4Goals
 
+def distanceRandomSimulation(state, target):
+    """
+    :param target:
+    :param state:
+    :return:
+    """
+    new_state = state.deepCopy()
+    walls = new_state.getWalls()
+    trueGoal = state.getTrueGoal()
+    actionsStack = []
+    distance = 0
+    reached = False
+    while not reached:
+      # Get valid actions
+      x, y = new_state.getPacmanPosition()
+      legalFutureStates = Actions.getLegalNeighbors((x, y), walls)
+      if trueGoal != target and trueGoal in legalFutureStates:
+        legalFutureStates.remove(trueGoal)
+      actions = new_state.getLegalActions(0)
+      current_direction = new_state.getPacmanState().configuration.direction
+      # The agent should not use the reverse direction during simulation
+      reversed_direction = Directions.REVERSE[current_direction]
+      if reversed_direction in actions and len(actions) > 1:
+          actions.remove(reversed_direction)
+
+      for a in actions:
+        dx, dy = Actions.directionToVector(a)
+        next_x, next_y = int(x + dx), int(y + dy)
+        if (next_x, next_y) not in legalFutureStates:
+            actions.remove(a)
+      # Randomly chooses a valid action
+      action = random.choice(actions)
+      # interact with environment and generate new state
+
+      new_state = new_state.generateSuccessor(0, action)
+      newPosition = new_state.getPacmanPosition()
+      actionsStack.append(action)
+      if newPosition == target:
+        reached = True
+
+    for action in actionsStack:
+        dx, dy = Actions.directionToVector(action)
+        distance = distance + dx + dy
+    return distance
+
 def calculateProbsOfNextState(state, action):
   x, y = state.getPacmanPosition()
-  dx, dy = Actions.directionToVector(action)
-  nextPos = (int(x + dx), int(y + dy))
-
-  # stepsSoFar = state.getStepsSoFar()
-
+  stepsSoFar = state.getStepsSoFar()
   probability4Goals = dict()
   walls = state.getWalls()
   goals = state.data.food.asList()
 
-  for goal in goals:
-    distFromCurrentPos = distanceToNearest(nextPos, goal, walls)
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-    distToCurrentPos = distanceToNearest(state.data.agentStartPos, nextPos, walls)
-    costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
-    probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+  try:
+    next_state = state.generateSuccessor(0, action)
+    for goal in goals:
+      distFromCurrentPos = distanceRandomSimulation(next_state, goal)
+      distFromStartPos = stepsSoFar
+      distToCurrentPos = distanceRandomSimulation(next_state, state.data.agentStartPos)
+      costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
+      probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+  except:
+    for goal in goals:
+      if goal == state.getTrueGoal():
+        probability4Goals[goal] = 1
+      else:
+        probability4Goals[goal] = 0
   return probability4Goals
-
-def calculateProbByCostDiff(state, goal):
-  pos = state.getPacmanPosition()
-  walls = state.getWalls()
-
-  prob = 1.0
-  if state != goal:
-    distFromCurrentPos = distanceToNearest(pos, goal, walls)
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-    distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
-    costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
-    prob = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-  return prob
