@@ -82,7 +82,7 @@ class QLearningAgent(ReinforcementAgent):
     if len(possibleActions) == 0:
     	return choosedAction
 
-    obStateValues = self.getObserverValue(state)
+    obStateValues = self.getObserverResult(state)
 
     for action in possibleActions:
       possibleStateQValues[action] = self.getQValue(state, action) + obStateValues[action]
@@ -93,7 +93,7 @@ class QLearningAgent(ReinforcementAgent):
       choosedAction = possibleStateQValues.argMax()
     return choosedAction
 
-  def getObserverValue(self, state):
+  def getObserverResult(self, state):
     possibleStateQValues = util.Counter()
     possibleActions = self.getLegalActions(state)
     choosedAction = None
