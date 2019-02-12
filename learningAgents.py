@@ -133,16 +133,27 @@ class ReinforcementAgent(ValueEstimationAgent):
     self.lastState = None
     self.lastAction = None
     self.episodeRewards = 0.0
+    self.stateStack = []
 
   def stopEpisode(self):
     """
       Called by environment when episode is done
     """
+    # print "Finish Episode %d:" % self.episodesSoFar
     if self.episodesSoFar < self.numTraining:
 		  self.accumTrainRewards += self.episodeRewards
     else:
 		  self.accumTestRewards += self.episodeRewards
     self.episodesSoFar += 1
+
+    for state in self.stateStack:
+      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+      for action in self.getLegalActions(state):
+        print "%s: %f" % (action, self.getQValue(state, action))
+        # for goal in state.getFood().asList():
+        #   print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
+      print "\n"
+
     if self.episodesSoFar >= self.numTraining:
       # Take off the training wheels
       self.epsilon = 0.0    # no exploration
@@ -173,6 +184,16 @@ class ReinforcementAgent(ValueEstimationAgent):
     self.epsilon = float(epsilon)
     self.alpha = float(alpha)
     self.discount = float(gamma)
+    # place holder of training q tables for each possible goals
+    self.possible_goals_training = dict()
+    self.currently_training_goal = None
+    self.already_trained_goals = []
+    self.allowed_actions = list()
+    self.allowed_actions.append(Directions.SOUTH)
+    self.allowed_actions.append(Directions.EAST)
+    self.allowed_actions.append(Directions.WEST)
+    self.allowed_actions.append(Directions.NORTH)
+
 
   ################################
   # Controls needed for Crawler  #
@@ -208,6 +229,8 @@ class ReinforcementAgent(ValueEstimationAgent):
     return state
 
   def registerInitialState(self, state):
+    for goal in state.getFood().asList():
+        self.possible_goals_training[goal] = util.Counter()
     self.startEpisode()
     if self.episodesSoFar == 0:
         print 'Beginning %d episodes of Training' % (self.numTraining)
@@ -250,3 +273,13 @@ class ReinforcementAgent(ValueEstimationAgent):
     if self.episodesSoFar == self.numTraining:
         msg = 'Training Done (turning off epsilon and alpha)'
         print '%s\n%s' % (msg,'-' * len(msg))
+        walls = state.getWalls()
+        for x in range(1,walls.width-1):
+            for y in range(1, walls.height-1):
+                print "(%s, %s):" % (x, y)
+                for action in self.allowed_actions:
+                    # if ((x, y), Directions.NORTH) in self.qTable.keys():
+                    print "%s, %f" % (action, self.qTable[((x, y), action)])
+
+
+

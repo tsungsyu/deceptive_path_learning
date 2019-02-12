@@ -543,6 +543,7 @@ def readCommand( argv ):
                     help='Turns on exception handling and timeouts during games', default=False)
   parser.add_option('--timeout', dest='timeout', type='int',
                     help=default('Maximum length of time an agent can spend computing in a single game'), default=30)
+  # parser.add_option('-torture')
 
   options, otherjunk = parser.parse_args(argv)
   if len(otherjunk) != 0:

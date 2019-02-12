@@ -39,6 +39,8 @@ class QLearningAgent(ReinforcementAgent):
 
     # Q table
     self.qValues = util.Counter()
+    self.qTable = util.Counter()
+
     print "ALPHA", self.alpha
     print "DISCOUNT", self.discount
     print "EXPLORATION", self.epsilon
@@ -82,9 +84,9 @@ class QLearningAgent(ReinforcementAgent):
       summation += qvalue
       possibleStateQValues[action] = qvalue
 
-    print "current position (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-    print possibleStateQValues
-    print summation / len(possibleStateQValues)
+    # print "current position (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+    # print possibleStateQValues
+    # print summation / len(possibleStateQValues)
 
     if possibleStateQValues.totalCount() == 0:
       choosedAction = random.choice(possibleActions)
@@ -126,7 +128,9 @@ class QLearningAgent(ReinforcementAgent):
     # print "State: ", state, " , Action: ", action, " , NextState: ", nextState, " , Reward: ", reward
     # print "QVALUE", self.getQValue(state, action)
     # print "VALUE", self.getValue(nextState)
-    self.qValues[(state, action)] = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
+    qValue = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
+    self.qValues[(state, action)] = qValue
+    self.qTable[(state.getPacmanPosition(), action)] = qValue
 
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
@@ -177,7 +181,6 @@ class ApproximateQAgent(PacmanQAgent):
     self.weights = util.Counter()
     # weight of max
     self.weightsMean = util.Counter()
-    self.stateStack = []
 
   def getQValue(self, state, action):
     """
@@ -196,7 +199,7 @@ class ApproximateQAgent(PacmanQAgent):
        the reward is passed in by interacting with the environment: learingAgents.py line 200
     """
     # update observer's weight
-    print "Episodes So Far: %d" % self.episodesSoFar
+    # print "Episodes So Far: %d" % self.episodesSoFar
     if state not in self.stateStack:
       self.stateStack.append(state)
     features = self.featExtractor.getFeatures(state, action)
@@ -216,10 +219,3 @@ class ApproximateQAgent(PacmanQAgent):
       print state.data.__dict__
       pass
 
-    for state in self.stateStack:
-      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      for action in self.getLegalActions(state):
-        print "%s: %f" % (action, self.getQValue(state, action))
-        # for goal in state.getFood().asList():
-        #   print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
-      print "\n"
