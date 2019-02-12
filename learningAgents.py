@@ -146,11 +146,12 @@ class ReinforcementAgent(ValueEstimationAgent):
 		  self.accumTestRewards += self.episodeRewards
     self.episodesSoFar += 1
 
-    for state in self.stateStack:
-      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      for action in self.getLegalActions(state):
-        print "%s: %f" % (action, self.getQValue(state, action))
-      print "\n"
+    if self.episodesSoFar == self.numTraining:
+        for state in self.stateStack:
+          print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+          for action in self.getLegalActions(state):
+            print "%s: %f" % (action, self.getQValue(state, action))
+          print "\n"
 
     if self.episodesSoFar >= self.numTraining:
       # Take off the training wheels
