@@ -144,15 +144,15 @@ class DeceptivePlannerExtractor(FeatureExtractor):
 
     # Once the LDP has been reached, switch to the second feature, which guides agent to the goal
     # else:
-    trueGoal = state.getTrueGoal()
-    dist = distanceToNearest((next_x, next_y), trueGoal, walls)
-    features["true-goal-dist"] = dist
+    # trueGoal = state.getTrueGoal()
+    # dist = distanceToNearest((next_x, next_y), trueGoal, walls)
+    # features["true-goal-dist"] = dist
 
-    # foods = state.getFood().asList()
-    # for goal in foods:
-    #   dist = distanceToNearest((next_x, next_y), goal, walls)
-    #   features[goal] = float(dist) / (walls.width * walls.height)
-    #   features[goal] = calculateProbByCostDiff(state, goal)
+    foods = state.getFood().asList()
+    for goal in foods:
+      dist = distanceToNearest((next_x, next_y), goal, walls)
+      features[goal] = float(dist) / (walls.width * walls.height)
+    #   features[goal] = calculateProbByCostDiff(state, goal) * 10
     #   print "feature(%s,%s): %f" % (goal[0],goal[1], features[goal])
 
     # features["x"] = x

@@ -9,7 +9,7 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
-import random,util,math
+import random,util
 
 class QLearningAgent(ReinforcementAgent):
   """
@@ -85,7 +85,8 @@ class QLearningAgent(ReinforcementAgent):
     obStateValues = self.getObserverResult(state)
 
     for action in possibleActions:
-      possibleStateQValues[action] = self.getQValue(state, action) + obStateValues[action]
+      possibleStateQValues[action] = self.getQValue(state, action)
+      # possibleStateQValues[action] = self.getQValue(state, action) + obStateValues[action]
 
     if possibleStateQValues.totalCount() == 0:
       choosedAction = random.choice(possibleActions)
@@ -94,6 +95,8 @@ class QLearningAgent(ReinforcementAgent):
     return choosedAction
 
   def getObserverResult(self, state):
+    print state.data
+
     possibleStateQValues = util.Counter()
     possibleActions = self.getLegalActions(state)
     choosedAction = None
