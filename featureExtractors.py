@@ -175,14 +175,14 @@ def prob2Value(state, probability4Goals):
   scaleup = 5
   for goal, prob in probDiffOfDummyGoals.items():
     # dists[goal] = calByGaussianDist(sigma, mu, probOfTrueGoal, prob)
-    dists[goal] = calByComparsion(probOfTrueGoal, prob, mu)
+    dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
   value = scaleup * max(dists.values())
   return value
 
 def calByGaussianDist(sigma, mu, goalProbs, dummyProb):
   return 1 / (sigma * math.sqrt(math.pi * 2)) * math.exp(-1 * (dummyProb - goalProbs - mu)**2 / 2 * sigma)
 
-def calByComparsion(goalProbs,dummyProb, mu):
+def calByComparison(goalProbs,dummyProb, mu):
   if dummyProb - goalProbs == mu:
     return 1
   else:
