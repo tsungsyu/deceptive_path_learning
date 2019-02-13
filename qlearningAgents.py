@@ -101,8 +101,9 @@ class QLearningAgent(ReinforcementAgent):
       return choosedAction
 
     for action in possibleActions:
-      probs = calculateProbsOfNextState(state, action)
-      possibleStateQValues[action] = prob2Value(state, probs)
+      nextState = state.generatePacmanSuccessor(action)
+      probs = calculateProbs(nextState)
+      possibleStateQValues[action] = prob2Value(nextState, probs)
 
     return possibleStateQValues
 

@@ -222,7 +222,13 @@ def prob2Value(state, probability4Goals):
   if diffProb < 0: reward < 0
   '''
   value = 0.0
+  if len(probability4Goals) == 0:
+    return value
+
   truGoal = state.getTrueGoal()
+  # if real goal is ate, return 0
+  if state.getPacmanPosition() == truGoal:
+    return value
 
   probOfTrueGoal = probability4Goals[truGoal]
   probDiffOfDummyGoals = {key:abs(prob - probOfTrueGoal) for key, prob in probability4Goals.items()
@@ -240,49 +246,26 @@ def prob2Value(state, probability4Goals):
   return value
 
 def calculateProbs(state):
-  pos = state.getPacmanPosition()
+  walls = state.getWalls()
+  curPos = state.getPacmanPosition()
+  startPos = state.data.agentStartPos
   stepsSoFar = state.getStepsSoFar()
-  walls = state.getWalls()
 
   probability4Goals = dict()
   goals = state.data.food.asList()
-
   for goal in goals:
-    distFromCurrentPos = distanceToNearest(pos, goal, walls)
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-    distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
-    costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
-    probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+    probability4Goals[goal] = calculateProbByCostDiff(startPos, curPos, goal, walls)
+
   return probability4Goals
 
-def calculateProbsOfNextState(state, action):
-  x, y = state.getPacmanPosition()
-  dx, dy = Actions.directionToVector(action)
-  nextPos = (int(x + dx), int(y + dy))
+def calculateProbByCostDiff(startPos, curPos, goal, walls):
+  if curPos != goal:
+    distFromCurrentPos = distanceToNearest(curPos, goal, walls)
+  else:
+    distFromCurrentPos = 0
 
-  # stepsSoFar = state.getStepsSoFar()
-
-  probability4Goals = dict()
-  walls = state.getWalls()
-  goals = state.data.food.asList()
-
-  for goal in goals:
-    distFromCurrentPos = distanceToNearest(nextPos, goal, walls)
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-    distToCurrentPos = distanceToNearest(state.data.agentStartPos, nextPos, walls)
-    costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
-    probability4Goals[goal] = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
-  return probability4Goals
-
-def calculateProbByCostDiff(state, goal):
-  pos = state.getPacmanPosition()
-  walls = state.getWalls()
-
-  prob = 1.0
-  if state != goal:
-    distFromCurrentPos = distanceToNearest(pos, goal, walls)
-    distFromStartPos = distanceToNearest(state.data.agentStartPos, goal, walls)
-    distToCurrentPos = distanceToNearest(state.data.agentStartPos, pos, walls)
-    costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
-    prob = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
+  distFromStartPos = distanceToNearest(startPos, goal, walls)
+  distToCurrentPos = distanceToNearest(startPos, curPos, walls)
+  costDiff = distFromCurrentPos + distToCurrentPos - distFromStartPos
+  prob = math.exp(-1 * float(costDiff) / (walls.width + walls.height))
   return prob

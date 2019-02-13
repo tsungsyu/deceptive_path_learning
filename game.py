@@ -814,6 +814,3 @@ def chooseTrueGoal(start, goals):
 
 
 
-
-
-
