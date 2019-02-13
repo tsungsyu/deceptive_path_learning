@@ -382,12 +382,12 @@ class PacmanRules:
       numFood = state.getNumFood()
       if position == state.data.trueGoal:
         # True goal is reached
-        state.data.scoreChange += 1
+        state.data.scoreChange += 10
         state.data.reachedTrueGoal = True
         state.data._win = True
       else:
         # eat one of the dummy goals
-        state.data.scoreChange += -1
+        state.data.scoreChange += -10
 
     # Eat capsule Deprecated
     if( position in state.getCapsules() ):

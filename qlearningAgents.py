@@ -163,6 +163,25 @@ class PacmanQAgent(QLearningAgent):
     self.doAction(state,action)
     return action
 
+  def update(self, state, action, nextState, reward):
+    """
+      The parent class calls this to observe a
+      state = action => nextState and reward transition.
+      You should do your Q-Value update here
+
+      NOTE: You should never call this function,
+      it will be called on your behalf
+    """
+    if self.episodesSoFar >= 500:
+      reward += self.rewardShaping(state, nextState)
+
+    qValue = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
+    self.qValues[(state, action)] = qValue
+    self.qTable[(state.getPacmanPosition(), action)] = qValue
+
+  def rewardShaping(self, state, nextState):
+    return self.discount * prob2Value(nextState, calculateProbs(nextState)) \
+           - prob2Value(state, calculateProbs(state))
 
 class ApproximateQAgent(PacmanQAgent):
   """
