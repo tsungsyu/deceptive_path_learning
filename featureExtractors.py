@@ -217,9 +217,7 @@ def prob2Value(state, probability4Goals):
   '''
   Calculate additional reward based on the probabilities by Gaussian distribution
   diffProb = maximum dummy goal probability - true goal probability
-  if diffProb = 0: reward is maximum
-  if diffProb > 0: reward > 0
-  if diffProb < 0: reward < 0
+  if diffProb = miu: reward is maximum
   '''
   value = 0.0
   if len(probability4Goals) == 0:
@@ -231,19 +229,30 @@ def prob2Value(state, probability4Goals):
     return value
 
   probOfTrueGoal = probability4Goals[truGoal]
-  probDiffOfDummyGoals = {key:abs(prob - probOfTrueGoal) for key, prob in probability4Goals.items()
-                      if key != truGoal}
+  probDiffOfDummyGoals = {key:prob for key, prob in probability4Goals.items() if key != truGoal}
 
   # if all dummy goals are ate, return 0
   if len(probDiffOfDummyGoals) == 0:
     return value
 
-  minProbDiffOfDummyGoal = min(probDiffOfDummyGoals.values())
-  variance = 1
-  miu = 0
-  scaleup = 10
-  value = scaleup * 1 / (variance * math.sqrt(math.pi * 2)) * math.exp(-1 * (minProbDiffOfDummyGoal-miu)**2 / 2 * variance)
+  dists = dict()
+  sigma = 1
+  mu = 0
+  scaleup = 1
+  for goal, prob in probDiffOfDummyGoals.items():
+    dists[goal] = calByGaussianDist(sigma, mu, probOfTrueGoal, prob)
+    # dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
+  value = scaleup * max(dists.values())
   return value
+
+def calByGaussianDist(sigma, mu, goalProbs, dummyProb):
+  return 1 / (sigma * math.sqrt(math.pi * 2)) * math.exp(-1 * (dummyProb - goalProbs - mu)**2 / 2 * sigma)
+
+def calByComparison(goalProbs,dummyProb, mu):
+  if dummyProb - goalProbs == mu:
+    return 1
+  else:
+    return -1
 
 def calculateProbs(state):
   walls = state.getWalls()
