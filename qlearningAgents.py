@@ -9,6 +9,7 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
+import csv
 
 import random,util,math
 
@@ -130,7 +131,6 @@ class QLearningAgent(ReinforcementAgent):
     # print "VALUE", self.getValue(nextState)
     qValue = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
     self.qValues[(state, action)] = qValue
-    self.qTable[(state.getPacmanPosition(), action)] = qValue
 
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
@@ -151,6 +151,7 @@ class PacmanQAgent(QLearningAgent):
     args['alpha'] = alpha
     args['numTraining'] = numTraining
     self.index = 0  # This is always Pacman
+    self.path_records = list()
     QLearningAgent.__init__(self, **args)
 
   def getAction(self, state):
@@ -172,12 +173,16 @@ class PacmanQAgent(QLearningAgent):
       NOTE: You should never call this function,
       it will be called on your behalf
     """
+    self.stateStack.append(state)
+
+    if self.episodesSoFar >= 150 and len(self.stateStack) > 0:
+      self.path_records.append(self.feature_convert(self.stateStack))
+
     if self.episodesSoFar >= 500:
       reward += self.rewardShaping(state, nextState)
 
     qValue = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
     self.qValues[(state, action)] = qValue
-    self.qTable[(state.getPacmanPosition(), action)] = qValue
 
   def rewardShaping(self, state, nextState):
     return self.discount * prob2Value(nextState, calculateProbs(nextState)) \
@@ -198,8 +203,7 @@ class ApproximateQAgent(PacmanQAgent):
     PacmanQAgent.__init__(self, **args)
     # weight of agent
     self.weights = util.Counter()
-    # weight of max
-    self.weightsMean = util.Counter()
+
 
   def getQValue(self, state, action):
     """
@@ -219,8 +223,6 @@ class ApproximateQAgent(PacmanQAgent):
     """
     # update observer's weight
     # print "Episodes So Far: %d" % self.episodesSoFar
-    if state not in self.stateStack:
-      self.stateStack.append(state)
     features = self.featExtractor.getFeatures(state, action)
     # update reward of agent respect to the reward of observer
     for key in features.keys():

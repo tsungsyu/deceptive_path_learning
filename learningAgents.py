@@ -6,9 +6,10 @@
 # John DeNero (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
-from game import Directions, Agent, Actions
+from game import Directions, Agent, Actions, Grid
 
 import random,util,time
+import csv
 
 class ValueEstimationAgent(Agent):
   """
@@ -146,18 +147,58 @@ class ReinforcementAgent(ValueEstimationAgent):
 		  self.accumTestRewards += self.episodeRewards
     self.episodesSoFar += 1
 
-    for state in self.stateStack:
-      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      for action in self.getLegalActions(state):
-        print "%s: %f" % (action, self.getQValue(state, action))
-        # for goal in state.getFood().asList():
-        #   print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
-      print "\n"
-
     if self.episodesSoFar >= self.numTraining:
       # Take off the training wheels
       self.epsilon = 0.0    # no exploration
       self.alpha = 0.0      # no learning
+
+  def feature_convert( self, states):
+    state = states[-1]
+    width, height = state.data.layout.width, state.data.layout.height
+    map = Grid(width, height)
+    if type(state.data.food) == type((1,2)):
+        state.food = self.reconstituteGrid(state.data.food)
+    for x in range(width):
+      for y in range(height):
+        food, walls = state.data.food, state.data.layout.walls
+        map[x][y] = self.foodWallStr(food[x][y], walls[x][y])
+
+    for s in states:
+        for agentState in s.data.agentStates:
+          if agentState == None: continue
+          if agentState.configuration == None: continue
+          x,y = [int( i ) for i in nearestPoint( agentState.configuration.pos )]
+          agent_dir = agentState.configuration.direction
+          if agentState.isPacman:
+            map[x][y] = self.pacman_convert(agent_dir )
+
+    out = [str(map.data[x][y])[0] for x in range(width) for y in range(height)]
+    out.reverse()
+    out.append('(%d%d)' % (state.getTrueGoal()[0], state.getTrueGoal()[1]))
+    return out
+
+  def pacman_convert( self, dir ):
+    if dir == Directions.NORTH:
+      return '1.'
+    if dir == Directions.SOUTH:
+      return '2.'
+    if dir == Directions.WEST:
+      return '3.'
+    return '4.'
+
+  def reconstituteGrid(bitRep):
+      if type(bitRep) is not type((1, 2)):
+          return bitRep
+      width, height = bitRep[:2]
+      return Grid(width, height, bitRepresentation=bitRep[2:])
+
+  def foodWallStr( self, hasFood, hasWall ):
+    if hasFood:
+      return '9.'
+    elif hasWall:
+      return '8.'
+    else:
+      return '0.'
 
   def isInTraining(self):
       return self.episodesSoFar < self.numTraining
@@ -273,13 +314,23 @@ class ReinforcementAgent(ValueEstimationAgent):
     if self.episodesSoFar == self.numTraining:
         msg = 'Training Done (turning off epsilon and alpha)'
         print '%s\n%s' % (msg,'-' * len(msg))
-        walls = state.getWalls()
-        for x in range(1,walls.width-1):
-            for y in range(1, walls.height-1):
-                print "(%s, %s):" % (x, y)
-                for action in self.allowed_actions:
-                    # if ((x, y), Directions.NORTH) in self.qTable.keys():
-                    print "%s, %f" % (action, self.qTable[((x, y), action)])
+
+        with open('path_records{0}{1}.csv'.format(state.getTrueGoal()[0], state.getTrueGoal()[1]), mode='w') as path_file:
+            writer = csv.writer(path_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            for record in self.path_records:
+                print record
+                writer.writerow(record)
+            path_file.close()
+
+def nearestPoint( pos ):
+  """
+  Finds the nearest grid point to a position (discretizes).
+  """
+  ( current_row, current_col ) = pos
+
+  grid_row = int( current_row + 0.5 )
+  grid_col = int( current_col + 0.5 )
+  return ( grid_row, grid_col )
 
 
 
