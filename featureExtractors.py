@@ -172,7 +172,7 @@ def prob2Value(state, probability4Goals):
   dists = dict()
   sigma = 1
   mu = 0
-  scaleup = 20
+  scaleup = state.getWalls().width * state.getWalls().height
   for goal, prob in probDiffOfDummyGoals.items():
     # dists[goal] = calByGaussianDist(sigma, mu, probOfTrueGoal, prob)
     # dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
