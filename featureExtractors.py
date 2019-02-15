@@ -172,18 +172,27 @@ def prob2Value(state, probability4Goals):
   dists = dict()
   sigma = 1
   mu = 0
-  scaleup = 5
+  scaleup = 20
   for goal, prob in probDiffOfDummyGoals.items():
     # dists[goal] = calByGaussianDist(sigma, mu, probOfTrueGoal, prob)
-    dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
+    # dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
+    dists[goal] = calByEntropy(probOfTrueGoal, prob, mu)
   value = scaleup * max(dists.values())
+  # print value
   return value
+
+def calByEntropy(goalProbs, dummyProb, mu):
+  entropy = -1 * (goalProbs * math.log(goalProbs, 2) + dummyProb * math.log(dummyProb, 2))
+  if dummyProb - goalProbs < mu:
+    return -1
+  else:
+    return entropy
 
 def calByGaussianDist(sigma, mu, goalProbs, dummyProb):
   return 1 / (sigma * math.sqrt(math.pi * 2)) * math.exp(-1 * (dummyProb - goalProbs - mu)**2 / 2 * sigma)
 
 def calByComparison(goalProbs,dummyProb, mu):
-  if dummyProb - goalProbs == mu:
+  if 0 <= dummyProb - goalProbs <= mu:
     return 1
   else:
     return -1
