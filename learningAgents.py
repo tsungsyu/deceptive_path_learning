@@ -260,24 +260,6 @@ class ReinforcementAgent(ValueEstimationAgent):
                    self.episodesSoFar,self.numTraining)
             print '\tAverage Rewards over all training: %.2f' % (
                     trainAvg)
-            # print path
-            path_str = ""
-            for state in self.stateStack:
-                path_str = path_str + ("->({}, {})".format(state.getPacmanPosition()[0], state.getPacmanPosition()[1]))
-                # for action in self.getLegalActions(state):
-                #     print "%s: %f" % (action, self.getQValue(state, action))
-            print path_str
-            # print q table
-            walls = state.getWalls()
-
-            for y in range(walls.height - 2, 0, -1):
-                q_value_row = ""
-                for x in range(1, walls.width - 1):
-                    q_value_row = "({}, {}): ".format(x, y)
-                    for action in self.allowed_actions:
-                        q_value_row = q_value_row + "{0:5}:{1:7.4g},\t".format(action, self.qTable[((x, y), action)])
-                    print q_value_row
-
         else:
             testAvg = float(self.accumTestRewards) / (self.episodesSoFar - self.numTraining)
             print '\tCompleted %d test episodes' % (self.episodesSoFar - self.numTraining)
@@ -287,10 +269,32 @@ class ReinforcementAgent(ValueEstimationAgent):
         print '\tEpisode took %.2f seconds' % (time.time() - self.episodeStartTime)
         # for goal in state.getFood().asList():
         #   print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
-
-
         self.lastWindowAccumRewards = 0.0
         self.episodeStartTime = time.time()
+
+    if self.episodesSoFar % NUM_EPS_UPDATE == 0:
+        file_name = "test_records/test_records.txt"
+        opened_file = open(file_name, 'a')
+        # print path
+        path_str = "episodes:{}".format(self.episodesSoFar)
+        for state in self.stateStack:
+            path_str = path_str + ("->({}, {})".format(state.getPacmanPosition()[0], state.getPacmanPosition()[1]))
+            # for action in self.getLegalActions(state):
+            #     print "%s: %f" % (action, self.getQValue(state, action))
+        print path_str
+        opened_file.write("%r\n" % path_str)
+        # print q table
+        walls = state.getWalls()
+
+        for y in range(walls.height - 2, 0, -1):
+            q_value_row = ""
+            for x in range(1, walls.width - 1):
+                q_value_row = "({}, {}): ".format(x, y)
+                for action in self.allowed_actions:
+                    q_value_row = q_value_row + "{0:5}:{1:7.4g},".format(action, self.qTable[((x, y), action)])
+                print q_value_row
+                opened_file.write("%r\n" % q_value_row)
+        opened_file.close()
 
     if self.episodesSoFar == self.numTraining:
         msg = 'Training Done (turning off epsilon and alpha)'
