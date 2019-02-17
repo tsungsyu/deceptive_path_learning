@@ -273,14 +273,15 @@ class ReinforcementAgent(ValueEstimationAgent):
         self.episodeStartTime = time.time()
 
     if self.episodesSoFar % NUM_EPS_UPDATE == 0:
-        file_name = "test_records/test_records.txt"
+        file_name = "test_records/{}{}_{}{}test_records.txt".format(state.data.agentStartPos[0], state.data.agentStartPos[1], state.getTrueGoal()[0],state.getTrueGoal()[1])
         opened_file = open(file_name, 'a')
         # print path
-        path_str = "episodes:{}".format(self.episodesSoFar)
+        path_str = "episodes:{}, RMP:{} ".format(self.episodesSoFar, state.data.rmp)
         for state in self.stateStack:
             path_str = path_str + ("->({}, {})".format(state.getPacmanPosition()[0], state.getPacmanPosition()[1]))
             # for action in self.getLegalActions(state):
             #     print "%s: %f" % (action, self.getQValue(state, action))
+        path_str =path_str + "->({}, {})".format(state.getTrueGoal()[0], state.getTrueGoal()[1])
         print path_str
         opened_file.write("%r\n" % path_str)
         # print q table

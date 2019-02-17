@@ -838,7 +838,7 @@ def chooseTrueGoal(start, goals):
   #   disFromStart[goal] = dist
   # return max(disFromStart, key=disFromStart.get)
   # return random.choice(goals)
-  return (2,2)
+  return (1,3)
 
 
 
