@@ -272,7 +272,7 @@ class ReinforcementAgent(ValueEstimationAgent):
         self.lastWindowAccumRewards = 0.0
         self.episodeStartTime = time.time()
 
-    if self.episodesSoFar % NUM_EPS_UPDATE == 0:
+    if self.episodesSoFar % NUM_EPS_UPDATE == 0 or self.episodesSoFar >= self.numTraining:
         file_name = "test_records/{}{}_{}{}test_records.txt".format(state.data.agentStartPos[0], state.data.agentStartPos[1], state.getTrueGoal()[0],state.getTrueGoal()[1])
         opened_file = open(file_name, 'a')
         # print path
