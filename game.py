@@ -806,6 +806,26 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
   return None
 
 def chooseTrueGoal(start, goals):
+  """
+  initial position:(1,2), true goal:(1,1), dummy goal:(1,4)
+  initial position:(6,1), true goal:(2,3), dummy goal:(0,2)
+  initial position:(4,2), true goal:(5,2), dummy goal:(2,2)
+  initial position:(3,0), true goal:(6,4), dummy goal:(2,3)
+  initial position:(1,3), true goal:(0,2), dummy goal:(0,4)
+  initial position:(2,0), true goal:(2,3), dummy goal:(0,4)
+  initial position:(3,0), true goal:(0,3), dummy goal:(1,3)
+  initial position:(7,4), true goal:(2,3), dummy goal:(2,1)
+  initial position:(5,1), true goal:(2,3), dummy goal:(3,3)
+  initial position:(6,3), true goal:(4,0), dummy goal:(5,3)
+  initial position:(5,1), true goal:(3,3), dummy goal:(0,4)
+  initial position:(4,1), true goal:(7,2), dummy goal:(5,3)
+  initial position:(4,2), true goal:(5,4), dummy goal:(0,0)
+  initial position:(6,4), true goal:(4,4), dummy goal:(5,2)
+  initial position:(0,3), true goal:(3,2), dummy goal:(2,4)
+  :param start:
+  :param goals:
+  :return:
+  """
   # disFromStart = dict()
   # for goal in goals:
   #   dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])

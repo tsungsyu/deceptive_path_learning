@@ -146,13 +146,13 @@ class ReinforcementAgent(ValueEstimationAgent):
 		  self.accumTestRewards += self.episodeRewards
     self.episodesSoFar += 1
 
-    for state in self.stateStack:
-      print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-      for action in self.getLegalActions(state):
-        print "%s: %f" % (action, self.getQValue(state, action))
+    # for state in self.stateStack:
+    #   print "state: (%s, %s)" % (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+    #   for action in self.getLegalActions(state):
+    #     print "%s: %f" % (action, self.getQValue(state, action))
         # for goal in state.getFood().asList():
         #   print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
-      print "\n"
+      # print "\n"
 
     if self.episodesSoFar >= self.numTraining:
       # Take off the training wheels
@@ -260,6 +260,24 @@ class ReinforcementAgent(ValueEstimationAgent):
                    self.episodesSoFar,self.numTraining)
             print '\tAverage Rewards over all training: %.2f' % (
                     trainAvg)
+            # print path
+            path_str = ""
+            for state in self.stateStack:
+                path_str = path_str + ("->({}, {})".format(state.getPacmanPosition()[0], state.getPacmanPosition()[1]))
+                # for action in self.getLegalActions(state):
+                #     print "%s: %f" % (action, self.getQValue(state, action))
+            print path_str
+            # print q table
+            walls = state.getWalls()
+
+            for y in range(walls.height - 2, 0, -1):
+                q_value_row = ""
+                for x in range(1, walls.width - 1):
+                    q_value_row = "({}, {}): ".format(x, y)
+                    for action in self.allowed_actions:
+                        q_value_row = q_value_row + "{0:5}:{1:7.4g},\t".format(action, self.qTable[((x, y), action)])
+                    print q_value_row
+
         else:
             testAvg = float(self.accumTestRewards) / (self.episodesSoFar - self.numTraining)
             print '\tCompleted %d test episodes' % (self.episodesSoFar - self.numTraining)
@@ -267,19 +285,17 @@ class ReinforcementAgent(ValueEstimationAgent):
         print '\tAverage Rewards for last %d episodes: %.2f'  % (
                 NUM_EPS_UPDATE,windowAvg)
         print '\tEpisode took %.2f seconds' % (time.time() - self.episodeStartTime)
+        # for goal in state.getFood().asList():
+        #   print "%s: %f" % (goal, self.getObserverQValue(state, action, goal))
+
+
         self.lastWindowAccumRewards = 0.0
         self.episodeStartTime = time.time()
 
     if self.episodesSoFar == self.numTraining:
         msg = 'Training Done (turning off epsilon and alpha)'
         print '%s\n%s' % (msg,'-' * len(msg))
-        walls = state.getWalls()
-        for x in range(1,walls.width-1):
-            for y in range(1, walls.height-1):
-                print "(%s, %s):" % (x, y)
-                for action in self.allowed_actions:
-                    # if ((x, y), Directions.NORTH) in self.qTable.keys():
-                    print "%s, %f" % (action, self.qTable[((x, y), action)])
+
 
 
 

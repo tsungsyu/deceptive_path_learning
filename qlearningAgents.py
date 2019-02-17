@@ -172,6 +172,7 @@ class PacmanQAgent(QLearningAgent):
       NOTE: You should never call this function,
       it will be called on your behalf
     """
+    self.stateStack.append(state)
     if self.episodesSoFar >= 500:
       reward += self.rewardShaping(state, nextState)
 
