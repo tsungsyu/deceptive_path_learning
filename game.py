@@ -784,12 +784,14 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
   fringe = [(dummyGoal[0], dummyGoal[1], None, None)]
   expanded = set()
   back = []
+  x, y =None ,None
   while fringe:
     pos_x, pos_y, pre_x, pre_y = fringe.pop(0)
     if (pos_x, pos_y) in expanded:
       continue
     expanded.add((pos_x, pos_y))
     # if we find a food at this location then exit
+
     if pos_x == trueGoal[0] and pos_y == trueGoal[1]:
       while rmp >= 0 and back:
         next_x, next_y, next_pre_x, next_pre_y = back.pop()
@@ -797,7 +799,11 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
           pre_x, pre_y = next_pre_x, next_pre_y
           x, y = next_x, next_y
           rmp = rmp - 1
-      return (x,y)
+      if x != None:
+        return (x, y)
+      else:
+        return dummyGoal
+
     # otherwise spread out from the location to its neighbours
     nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
     for nbr_x, nbr_y in nbrs:
@@ -832,7 +838,7 @@ def chooseTrueGoal(start, goals):
   #   disFromStart[goal] = dist
   # return max(disFromStart, key=disFromStart.get)
   # return random.choice(goals)
-  return goals[1]
+  return (2,2)
 
 
 
