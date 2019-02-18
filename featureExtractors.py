@@ -172,18 +172,40 @@ def prob2Value(state, probability4Goals):
   dists = dict()
   sigma = 1
   mu = 0
-  scaleup = 5
+  scaleup = 1
   for goal, prob in probDiffOfDummyGoals.items():
     # dists[goal] = calByGaussianDist(sigma, mu, probOfTrueGoal, prob)
-    dists[goal] = calByComparsion(probOfTrueGoal, prob, mu)
+    # dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
+    dists[goal] = calByEntropy(probOfTrueGoal, prob, mu)
+  # print "(%s,%s)dists:"% (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
+  # print dists
   value = scaleup * max(dists.values())
   return value
+
+def calByEntropy(goalProbs, dummyProb, mu):
+  if dummyProb - goalProbs < mu:
+    return -1
+  else:
+    if goalProbs == 0 and dummyProb == 0:
+      entropy = 0
+    else:
+      goalP = goalProbs / (goalProbs + dummyProb)
+      dummyP = dummyProb / (goalProbs + dummyProb)
+      if goalP == 0 and dummyP != 0:
+        entropy = -1 * dummyP * math.log(dummyP, 2)
+      elif goalProbs != 0 and dummyProb == 0:
+        entropy = -1 * goalP * math.log(goalP, 2)
+      else:
+        entropy = -1 * (goalP * math.log(goalP, 2) + dummyP * math.log(dummyP, 2))
+    const = 5
+    return entropy * const
+
 
 def calByGaussianDist(sigma, mu, goalProbs, dummyProb):
   return 1 / (sigma * math.sqrt(math.pi * 2)) * math.exp(-1 * (dummyProb - goalProbs - mu)**2 / 2 * sigma)
 
-def calByComparsion(goalProbs,dummyProb, mu):
-  if dummyProb - goalProbs == mu:
+def calByComparison(goalProbs,dummyProb, mu):
+  if 0 <= dummyProb - goalProbs <= mu:
     return 1
   else:
     return -1
@@ -197,10 +219,10 @@ def calculateProbs(state):
   probability4Goals = dict()
   goals = state.data.food.asList()
   for goal in goals:
-    probability4Goals[goal] = calculateProbByCostDiff(startPos, curPos, goal, walls)
+    probability4Goals[goal] = calculateProbByCostDiff(startPos, curPos, stepsSoFar, goal, walls)
   return probability4Goals
 
-def calculateProbByCostDiff(startPos, curPos, goal, walls):
+def calculateProbByCostDiff(startPos, curPos, stepsSoFar, goal, walls):
   if curPos != goal:
     distFromCurrentPos = distanceToNearest(curPos, goal, walls)
   else:

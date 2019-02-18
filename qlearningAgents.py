@@ -9,7 +9,6 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
-import csv
 
 import random,util,math
 
@@ -135,7 +134,7 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
 
-  def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
+  def __init__(self, epsilon=0.1,gamma=0.9,alpha=0.5, numTraining=0, **args):
     """
     These default parameters can be changed from the pacman.py command line.
     For example, to change the exploration rate, try:
@@ -178,14 +177,18 @@ class PacmanQAgent(QLearningAgent):
     if self.episodesSoFar >= 150 and len(self.stateStack) > 0:
       self.path_records.append(self.feature_convert(self.stateStack))
 
-    if self.episodesSoFar >= 500:
-      reward += self.rewardShaping(state, nextState)
+    # if self.episodesSoFar >= 500:
+    # # if self.episodesSoFar >= 5:
+    #   reward += self.rewardShaping(state, nextState)
 
-    qValue = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
+    qValue = self.getQValue(state, action) + self.alpha * (
+              reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
     self.qValues[(state, action)] = qValue
+    self.qTable[(state.getPacmanPosition(), action)] = qValue
 
   def rewardShaping(self, state, nextState):
-    return self.discount * prob2Value(nextState, calculateProbs(nextState)) \
+    # return self.discount * prob2Value(nextState, calculateProbs(nextState)) \
+    return prob2Value(nextState, calculateProbs(nextState)) \
            - prob2Value(state, calculateProbs(state))
 
 class ApproximateQAgent(PacmanQAgent):

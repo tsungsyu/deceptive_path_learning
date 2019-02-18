@@ -10,6 +10,7 @@ from game import Directions, Agent, Actions, Grid
 
 import random,util,time
 import csv
+import os
 
 class ValueEstimationAgent(Agent):
   """
@@ -172,9 +173,9 @@ class ReinforcementAgent(ValueEstimationAgent):
           if agentState.isPacman:
             map[x][y] = self.pacman_convert(agent_dir )
 
-    out = [str(map.data[x][y])[0] for x in range(width) for y in range(height)]
-    out.reverse()
-    out.append('(%d%d)' % (state.getTrueGoal()[0], state.getTrueGoal()[1]))
+    out = [str(map.data[x][y])[0] for y in range(height-2, 0, -1) for x in range(1, width-1)]
+    # out.reverse()
+    out.append(state.getFood().asList().index(state.getTrueGoal()))
     return out
 
   def pacman_convert( self, dir ):
@@ -315,7 +316,10 @@ class ReinforcementAgent(ValueEstimationAgent):
         msg = 'Training Done (turning off epsilon and alpha)'
         print '%s\n%s' % (msg,'-' * len(msg))
 
-        with open('path_records{0}{1}.csv'.format(state.getTrueGoal()[0], state.getTrueGoal()[1]), mode='w') as path_file:
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, 'csv/path_records{0}{1}.csv'.format(state.getTrueGoal()[0], state.getTrueGoal()[1]))
+
+        with open(filename, mode='w') as path_file:
             writer = csv.writer(path_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for record in self.path_records:
                 print record
