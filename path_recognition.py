@@ -19,7 +19,9 @@ def main():
 
     # train_dataset_url = "/Users/hugh/.keras/datasets/iris_training.csv"
 
-    train_dataset_url = "/Users/hugh/.keras/datasets/train_records.csv"
+    # train_dataset_url = "/Users/hugh/.keras/datasets/train_records.csv"
+
+    train_dataset_url = "/Users/hugh/.keras/datasets/train_dataset.csv"
 
     train_dataset_fp = tf.keras.utils.get_file(fname=os.path.basename(train_dataset_url),
                                                origin=train_dataset_url)
@@ -30,7 +32,11 @@ def main():
 
     # column_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'species']
 
-    column_names =['(0-8)', '(1-8)', '(2-8)', '(3-8)', '(4-8)', '(5-8)', '(6-8)', '(7-8)', '(8-8)', '(0-7)', '(1-7)', '(2-7)', '(3-7)', '(4-7)', '(5-7)', '(6-7)', '(7-7)', '(8-7)', '(0-6)', '(1-6)', '(2-6)', '(3-6)', '(4-6)', '(5-6)', '(6-6)', '(7-6)', '(8-6)', '(0-5)', '(1-5)', '(2-5)', '(3-5)', '(4-5)', '(5-5)', '(6-5)', '(7-5)', '(8-5)', '(0-4)', '(1-4)', '(2-4)', '(3-4)', '(4-4)', '(5-4)', '(6-4)', '(7-4)', '(8-4)', '(0-3)', '(1-3)', '(2-3)', '(3-3)', '(4-3)', '(5-3)', '(6-3)', '(7-3)', '(8-3)', '(0-2)', '(1-2)', '(2-2)', '(3-2)', '(4-2)', '(5-2)', '(6-2)', '(7-2)', '(8-2)', '(0-1)', '(1-1)', '(2-1)', '(3-1)', '(4-1)', '(5-1)', '(6-1)', '(7-1)', '(8-1)', '(0-0)', '(1-0)', '(2-0)', '(3-0)', '(4-0)', '(5-0)', '(6-0)', '(7-0)', '(8-0)', 'goals']
+    column_names = ['(1 - 5)', '(2 - 5)', '(3 - 5)', '(4 - 5)', '(5 - 5)', '(6 - 5)', '(7 - 5)', '(8 - 5)', '(1 - 4)',
+                    '(2 - 4)', '(3 - 4)', '(4 - 4)', '(5 - 4)', '(6 - 4)', '(7 - 4)', '(8 - 4)', '(1 - 3)', '(2 - 3)',
+                    '(3 - 3)', '(4 - 3)', '(5 - 3)', '(6 - 3)', '(7 - 3)', '(8 - 3)', '(1 - 2)', '(2 - 2)', '(3 - 2)',
+                    '(4 - 2)', '(5 - 2)', '(6 - 2)', '(7 - 2)', '(8 - 2)', '(1 - 1)', '(2 - 1)', '(3 - 1)', '(4 - 1)',
+                    '(5 - 1)', '(6 - 1)', '(7 - 1)', '(8 - 1)', 'Goals']
 
     feature_names = column_names[:-1]
     label_name = column_names[-1]
@@ -38,23 +44,22 @@ def main():
     print("Features: {}".format(feature_names))
     print("Label: {}".format(label_name))
 
-    class_names = ['(17)', '(77)']
-
-
+    class_names = ['(15)', '(85)']
 
     train_dataset = tf.contrib.data.make_csv_dataset(
         train_dataset_fp,
         batch_size,
         column_names=column_names,
         label_name=label_name,
-        num_epochs=1)
+        num_epochs=1,
+        shuffle=True)
 
     train_dataset = train_dataset.map(pack_features_vector)
     features, labels = next(iter(train_dataset))
     print(labels)
 
     model = tf.keras.Sequential([
-        tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(81,)),  # input shape required
+        tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(40,)),  # input shape required
         tf.keras.layers.Dense(32, activation=tf.nn.relu),
         tf.keras.layers.Dense(2)
     ])
@@ -91,7 +96,7 @@ def main():
     train_loss_results = []
     train_accuracy_results = []
 
-    num_epochs = 101
+    num_epochs = 301
 
     for epoch in range(num_epochs):
         epoch_loss_avg = tfe.metrics.Mean()
@@ -123,8 +128,9 @@ def main():
 
     # test_url = "/Users/hugh/.keras/datasets/iris_test.csv"
 
-    test_url = "/Users/hugh/.keras/datasets/test_records.csv"
+    # test_url = "/Users/hugh/.keras/datasets/test_records.csv"
 
+    test_url = "/Users/hugh/.keras/datasets/test_dataset.csv"
 
     test_fp = tf.keras.utils.get_file(fname=os.path.basename(test_url),
                                       origin=test_url)
@@ -150,29 +156,15 @@ def main():
 
     # tf.stack([y, prediction], axis=1)
     prediction_dataset = tf.convert_to_tensor([
-        [8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 4., 4., 1., 2., 4., 2., 0., 8., 8., 3., 2., 1., 2., 3., 0., 0., 8., 8.,
-         4., 2., 3., 0., 0., 0., 4., 8., 8., 3., 4., 3., 2., 4., 1., 2., 8., 8., 3., 2., 0., 3., 2., 1., 3., 8., 8., 1.,
-         4., 0., 1., 1., 3., 3., 8., 8., 9., 1., 1., 2., 1., 3., 0., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8.],
-        [8.,8.,8.,8.,8.,8.,8.,8.,8.,8.,9.,1.,1.,1.,4.,0.,0.,8.,8.,0.,0.,0.,0.,1.,4.,0.,8.,8.,0.,0.,0.,0.,0.,4.,0.,8.,8.,0.,0.,0.,0.,0.,1.,4.,8.,8.,0.,0.,0.,0.,0.,0.,0.,8.,8.,0.,0.,0.,0.,0.,0.,0.,8.,8.,9.,0.,0.,0.,0.,0.,0.,8.,8.,8.,8.,8.,8.,8.,8.,8.,8],
-    [8.,8.,8.,8.,8.,8.,8.,8.,8.,8.,9.,0.,0.,0.,0.,0.,0.,8.,8.,0.,0.,0.,0.,0.,0.,0.,8.,8.,0.,0.,0.,0.,0.,4.,0.,8.,8.,0.,0.,0.,0.,0.,1.,4.,8.,8.,0.,0.,0.,0.,0.,0.,0.,8.,8.,0.,0.,0.,0.,0.,0.,0.,8.,8.,9.,0.,0.,0.,0.,0.,0.,8.,8.,8.,8.,8.,8.,8.,8.,8.,8],
-        [8., 8., 8., 8., 8., 8., 8., 8., 8.,
-        8., 9., 0., 0., 0., 0., 0., 0., 8.,
-        8., 0., 0., 0., 0., 0., 0., 0., 8.,
-        8., 0., 0., 0., 0., 0., 0., 0., 8.,
-        8., 0., 0., 1., 1., 1., 1., 4., 8.,
-        8., 0., 0., 0., 0., 0., 0., 0., 8.,
-        8., 0., 0., 0., 0., 0., 0., 0., 8.,
-        8., 9., 0., 0., 0., 0., 0., 0., 8.,
-        8., 8., 8., 8., 8., 8., 8., 8., 8],
-    [8.,8.,8.,8.,8.,8.,8.,8.,8.,
-8.,9.,0.,0.,0.,0.,0.,0.,8.,
-8.,0.,0.,0.,0.,0.,0.,0.,8.,
-8.,0.,0.,0.,0.,0.,0.,0.,8.,
-8.,0.,0.,0.,0.,1.,1.,4.,8.,
-8.,0.,0.,0.,0.,0.,0.,0.,8.,
-8.,0.,0.,0.,0.,0.,0.,0.,8.,
-8.,9.,0.,0.,0.,0.,0.,0.,8.,
-8.,8.,8.,8.,8.,8.,8.,8.,8]])
+        [9,0,1,4,0,0,0,9,1,0,3,2,0,0,0,0,3,3,2,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,3,4,0,0,0,0],
+        [9,0,0,3,1,3,4,9,0,0,0,0,3,2,0,0,0,0,1,4,1,0,0,0,0,0,1,2,4,0,0,0,0,0,3,4,0,0,0,0],
+        [9,0,0,0,0,0,0,9,0,0,0,0,0,1,4,0,0,0,0,0,0,1,0,0,0,0,0,0,1,4,0,0,0,0,0,4,2,0,0,0],
+        [9,0,0,0,0,0,0,9,0,0,0,0,0,1,4,4,0,0,0,0,0,1,0,0,0,0,0,0,1,4,0,0,0,0,3,4,4,0,0,0],
+        [9,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0],
+        [9,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,4,4,0,0,0]])
+
+    prediction_dataset = tf.cast(prediction_dataset,tf.float32)
+
     predictions = model(prediction_dataset)
 
     for i, logits in enumerate(predictions):

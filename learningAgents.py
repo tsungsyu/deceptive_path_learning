@@ -319,10 +319,23 @@ class ReinforcementAgent(ValueEstimationAgent):
         dirname = os.path.dirname(__file__)
         filename = os.path.join(dirname, 'csv/path_records{0}{1}.csv'.format(state.getTrueGoal()[0], state.getTrueGoal()[1]))
 
+        width = state.data.layout.width
+        height = state.data.layout.height
+        title = list()
+        title.append(len(self.path_records))
+        title.append((height-2) * (width-2))
+        for y in range(height - 2, 0, -1):
+            for x in range(1, width-1):
+                title.append("({}-{})".format(x, y))
+        title.append("({}{})".format(state.getTrueGoal()[0], state.getTrueGoal()[1]))
+        title.append("({}{})".format(state.getDummys()[0][0], state.getDummys()[0][1]))
+
+        # print title
         with open(filename, mode='w') as path_file:
             writer = csv.writer(path_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(title)
             for record in self.path_records:
-                print record
+                # print record
                 writer.writerow(record)
             path_file.close()
 
