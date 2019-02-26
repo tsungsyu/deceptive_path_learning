@@ -10,7 +10,7 @@ Execute the command as below:
 ```
 python pacman.py -p PacmanQAgent -n 5005 -l TestGrid16 -a numTraining=5000 -x 5000
 ```
-This command would initiate a Q-learning agent to learn deceptive path on the Test Gird with 5000 training episodes and 5 testing episodes.
+This command would initiate a Q-learning agent to learn deceptive path on the Test Gird with 5000 training episodes and 5 testing episodes.<br>
 To test on other layouts (test grid 1-15), change the variable -l as below:
 ```
 python pacman.py -p PacmanQAgent -n 5005 -l TestGrid[1-15] -a numTraining=5000 -x 5000
