@@ -170,15 +170,10 @@ def prob2Value(state, probability4Goals):
     return value
 
   dists = dict()
-  sigma = 1
   mu = 0
   scaleup = 1
   for goal, prob in probDiffOfDummyGoals.items():
-    # dists[goal] = calByGaussianDist(sigma, mu, probOfTrueGoal, prob)
-    # dists[goal] = calByComparison(probOfTrueGoal, prob, mu)
     dists[goal] = calByEntropy(probOfTrueGoal, prob, mu)
-  # print "(%s,%s)dists:"% (state.getPacmanPosition()[0], state.getPacmanPosition()[1])
-  # print dists
   value = scaleup * max(dists.values())
   return value
 

@@ -173,7 +173,9 @@ class PacmanQAgent(QLearningAgent):
       it will be called on your behalf
     """
     self.stateStack.append(state)
-    if self.episodesSoFar >= 5:
+
+    # after training episodes, the observer start to give reward based on the reward shaping function
+    if self.episodesSoFar >= 50:
       reward += self.rewardShaping(state, nextState)
 
     qValue = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
@@ -181,7 +183,9 @@ class PacmanQAgent(QLearningAgent):
     self.qTable[(state.getPacmanPosition(), action)] = qValue
 
   def rewardShaping(self, state, nextState):
-    # return self.discount * prob2Value(nextState, calculateProbs(nextState)) \
+    """
+    reward shaping function
+    """
     return prob2Value(nextState, calculateProbs(nextState)) \
            - prob2Value(state, calculateProbs(state))
 

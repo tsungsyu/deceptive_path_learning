@@ -813,32 +813,33 @@ def findLdp(trueGoal, dummyGoal, rmp, walls):
 
 def chooseTrueGoal(start, goals):
   """
-  initial position:(1,2), true goal:(1,1), dummy goal:(1,4)
-  initial position:(6,1), true goal:(2,3), dummy goal:(0,2)
-  initial position:(4,2), true goal:(5,2), dummy goal:(2,2)
-  initial position:(3,0), true goal:(6,4), dummy goal:(2,3)
-  initial position:(1,3), true goal:(0,2), dummy goal:(0,4)
-  initial position:(2,0), true goal:(2,3), dummy goal:(0,4)
-  initial position:(3,0), true goal:(0,3), dummy goal:(1,3)
-  initial position:(7,4), true goal:(2,3), dummy goal:(2,1)
-  initial position:(5,1), true goal:(2,3), dummy goal:(3,3)
-  initial position:(6,3), true goal:(4,0), dummy goal:(5,3)
-  initial position:(5,1), true goal:(3,3), dummy goal:(0,4)
-  initial position:(4,1), true goal:(7,2), dummy goal:(5,3)
-  initial position:(4,2), true goal:(5,4), dummy goal:(0,0)
-  initial position:(6,4), true goal:(4,4), dummy goal:(5,2)
-  initial position:(0,3), true goal:(3,2), dummy goal:(2,4)
-  :param start:
-  :param goals:
-  :return:
+  This method decide with goal is the true goal in the initial stage of each episode
+  The layouts of 15 testing examples
+  initial position:(2,3), true goal:(2,2), dummy goal:(2,5)
+  initial position:(7,2), true goal:(3,4), dummy goal:(2,4)
+  initial position:(5,3), true goal:(6,3), dummy goal:(3,3)
+  initial position:(4,1), true goal:(7,5), dummy goal:(3,4)
+  initial position:(2,4), true goal:(1,3), dummy goal:(1,5)
+  initial position:(3,1), true goal:(3,4), dummy goal:(1,5)
+  initial position:(4,1), true goal:(1,4), dummy goal:(2,4)
+  initial position:(8,5), true goal:(3,4), dummy goal:(3,2)
+  initial position:(6,2), true goal:(3,4), dummy goal:(4,4)
+  initial position:(7,4), true goal:(5,1), dummy goal:(6,4)
+  initial position:(6,2), true goal:(4,4), dummy goal:(1,5)
+  initial position:(5,2), true goal:(8,3), dummy goal:(6,4)
+  initial position:(5,3), true goal:(6,5), dummy goal:(1,1)
+  initial position:(7,5), true goal:(5,5), dummy goal:(6,3)
+  initial position:(1,4), true goal:(4,3), dummy goal:(3,5)
   """
-  # disFromStart = dict()
-  # for goal in goals:
-  #   dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
-  #   disFromStart[goal] = dist
-  # return max(disFromStart, key=disFromStart.get)
-  # return random.choice(goals)
-  return (4,3)
+  # when testing the testGrid16, choose the top-right goal as true goal
+  disFromStart = dict()
+  for goal in goals:
+    dist = math.fabs(goal[0] - start[0]) + math.fabs(goal[1] - start[1])
+    disFromStart[goal] = dist
+  return max(disFromStart, key=disFromStart.get)
+
+  # testing the layout 1-15, return the position of true goal directly. eg. layout1 return (2,2)
+  # return (2,2)
 
 
 
