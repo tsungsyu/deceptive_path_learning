@@ -2,9 +2,9 @@
 This project is developed and tested based on the [Pacman Projects](http://ai.berkeley.edu/project_overview.html) by the [University of California, Berkeley](http://berkeley.edu/).<br>
 
 This repository includes two different approaches of reinforcement learning to generate deceptive paths in the 2-Dimention environment. Both the approaches tested on the same 15 randomly generated 8 times 5 maps, each with one dummy goal and one true goal.
-* Approach 1: Mean Q table
+#### Approach 1: Mean Q table
 
-* Approach 2: Reward-shaped Q-learning with an observer<br>
+#### Approach 2: Reward-shaped Q-learning with an observer<br>
 Checkout the branch with tag “Q-Learning_RewardShaping_Prob”
 Execute the command as below:
 ```
