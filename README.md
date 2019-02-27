@@ -7,6 +7,14 @@ This repository includes two different approaches of reinforcement learning to g
 
 #### Approach 1: Mean Q table
 
+python deceptiveGridWorld.py -g EvaluationGrid15 -q -o 800 -x 100
+
+This runs the mean-Q-learner on EvaluationGrid15, quietly, with 800 phase-one training episodes, and 100 phase-two training episodes.
+
+The agent was tested on EvaluationGrid1, EvaluationGrid2, ... EvaluationGrid15.
+
+Line 529 of deceptiveGridWorld.py details additional options for parameters.
+
 
 #### Approach 2: Reward-shaped Q-learning with an observer<br>
 Checkout the branch with tag “Q-Learning_RewardShaping_Prob”
