@@ -7,7 +7,7 @@ This repository includes two different approaches of reinforcement learning to g
 
 #### Approach 1: Mean Q table
 
-Checkout the branch 
+Checkout the branch develop/mean_Qlearning
 ```
 python deceptiveGridWorld.py -g EvaluationGrid15 -q -o 800 -x 100
 ```
