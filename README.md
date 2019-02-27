@@ -10,6 +10,7 @@ This repository includes two different approaches of reinforcement learning to g
 python deceptiveGridWorld.py -g EvaluationGrid15 -q -o 800 -x 100
 ```
 This runs the mean-Q-learner on EvaluationGrid15, quietly, with 800 phase-one training episodes, and 100 phase-two training episodes.
+By default, it is set to display 10 episodes after training, but this can be modified by the option -y
 
 The agent was tested on EvaluationGrid1, EvaluationGrid2, ... EvaluationGrid15.
 
