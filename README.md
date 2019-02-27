@@ -5,7 +5,7 @@ Our work adapts the code developed by the [University of California, Berkeley](h
 
 This repository includes two different approaches of reinforcement learning to generate deceptive paths in the 2-dimensional environment. Both the approaches are tested on the same 15 randomly generated 8-by-5 maps, each with one dummy goal and one true goal.
 
-#### Approach 1: Mean Q table
+#### Approach 1: Mean Q table (Alexander Gunner)
 
 Checkout the branch develop/mean_Qlearning
 ```
