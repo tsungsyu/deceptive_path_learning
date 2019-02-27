@@ -1,5 +1,5 @@
 # deceptive_path_learning
-This project was developed for the COMP90055 Computing Project subject, (Summer semester 2019) at the University of Melbourne.
+This project was developed for the COMP90045 Computing Project subject, (Summer Semester 2019) at the University of Melbourne.
 
 Our work adapts the code developed by the [University of California, Berkeley](http://berkeley.edu/) for the [Pacman Projects](http://ai.berkeley.edu/project_overview.html).<br>
 
